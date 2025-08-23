@@ -25,6 +25,19 @@ export interface RenderSvgInput {
   backgroundColor?: string;
 }
 
+// Helper function to fetch and Base64-encode a resource
+async function encodeResourceAsBase64(url: string): Promise<string> {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch resource at ${url}: ${response.statusText}`);
+  }
+  const buffer = await response.arrayBuffer();
+  const base64 = Buffer.from(buffer).toString('base64');
+  const contentType = response.headers.get('content-type');
+  return `data:${contentType};base64,${base64}`;
+}
+
+
 export async function renderToSvgString({ elements, canvasWidth, canvasHeight, backgroundColor }: RenderSvgInput): Promise<string> {
   const uniqueFonts = elements
     .filter(el => el.type === 'text' && el.fontFamily)
@@ -38,18 +51,31 @@ export async function renderToSvgString({ elements, canvasWidth, canvasHeight, b
       return acc;
     }, new Map<string, Set<string>>());
 
-  const fontFamilies = Array.from(uniqueFonts.keys());
-
-  const googleFontUrl = fontFamilies.length > 0
-    ? 'https://fonts.googleapis.com/css2?' + fontFamilies.map(family => {
+  let fontCss = '';
+  if (uniqueFonts.size > 0) {
+    const fontFamilies = Array.from(uniqueFonts.keys());
+    const googleFontUrl = 'https://fonts.googleapis.com/css2?' + fontFamilies.map(family => {
         const fontName = family.split(',')[0].replace(/'/g, '').replace(/\s/g, '+');
         const fontData = googleFonts.find(f => f.family === family);
-        const weights = fontData ? Array.from(uniqueFonts.get(family) || []).join(';') : '400';
+        const weights = fontData ? Array.from(uniqueFonts.get(family) || ['400']).join(';') : '400';
         return `family=${fontName}:wght@${weights}`;
-    }).join('&')
-    : '';
+    }).join('&');
 
-  const fontImport = googleFontUrl ? `@import url('${googleFontUrl}');` : '';
+    const cssResponse = await fetch(googleFontUrl);
+    if (cssResponse.ok) {
+        let cssText = await cssResponse.text();
+        const fontUrlRegex = /url\((https?:\/\/[^)]+)\)/g;
+        const fontUrlMatches = Array.from(cssText.matchAll(fontUrlRegex));
+        
+        const encodedUrls = await Promise.all(
+          fontUrlMatches.map(match => encodeResourceAsBase64(match[1]))
+        );
+
+        let i = 0;
+        fontCss = cssText.replace(fontUrlRegex, () => `url(${encodedUrls[i++]})`);
+    }
+  }
+
 
   const backgroundRect = backgroundColor && backgroundColor !== 'transparent'
     ? `<rect width="100%" height="100%" fill="${backgroundColor}" />`
@@ -84,7 +110,7 @@ export async function renderToSvgString({ elements, canvasWidth, canvasHeight, b
       <defs>
         <style type="text/css">
           <![CDATA[
-            ${fontImport}
+            ${fontCss}
           ]]>
         </style>
       </defs>
