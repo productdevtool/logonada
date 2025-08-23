@@ -25,16 +25,17 @@ export function Editor() {
   }
 
   const getInitialElements = (orientation: CanvasOrientation): CanvasElement[] => {
+    const {width, height} = getCanvasDimensions(orientation);
     if (orientation === 'vertical') {
         return [
-            { id: 'brand-text', type: 'text', name: brandName, x: 100, y: 350, width: 200, height: 50, fontFamily: font, color: 'black' },
-            { id: 'logo-icon', type: 'icon', name: 'Rocket', x: 130, y: 200, width: 140, height: 140, color: 'black' },
+            { id: 'brand-text', type: 'text', name: brandName, x: (width/2) - 100, y: 350, width: 200, height: 50, fontFamily: font, color: 'black' },
+            { id: 'logo-icon', type: 'icon', name: 'Rocket', x: (width/2) - 70, y: 200, width: 140, height: 140, color: 'black' },
         ];
     }
     // horizontal
     return [
-        { id: 'brand-text', type: 'text', name: brandName, x: 350, y: 175, width: 200, height: 50, fontFamily: font, color: 'black' },
-        { id: 'logo-icon', type: 'icon', name: 'Rocket', x: 150, y: 130, width: 140, height: 140, color: 'black' },
+        { id: 'brand-text', type: 'text', name: brandName, x: 400, y: 175, width: 200, height: 50, fontFamily: font, color: 'black' },
+        { id: 'logo-icon', type: 'icon', name: 'Rocket', x: 200, y: 130, width: 140, height: 140, color: 'black' },
     ];
   };
 
