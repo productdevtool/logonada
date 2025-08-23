@@ -52,3 +52,16 @@ export async function searchIconsAction(query: string): Promise<IconifySearchRes
 
     return response.json();
 }
+
+export async function getIconSvgAction(url: string): Promise<string> {
+    const response = await fetch(url, {
+        headers: {
+            'Authorization': `Bearer ${process.env.ICONFINDER_API_KEY}`,
+            'accept': 'application/json'
+        },
+    });
+    if (!response.ok) {
+        throw new Error('Failed to fetch SVG content from Iconfinder.');
+    }
+    return response.text();
+}

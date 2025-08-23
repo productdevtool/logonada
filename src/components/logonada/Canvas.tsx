@@ -5,6 +5,7 @@ import type { CanvasElement, CanvasOrientation } from './Editor';
 import { DraggableResizable } from './DraggableResizable';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import { IconRenderer } from './IconRenderer';
 
 interface CanvasProps {
   elements: CanvasElement[];
@@ -51,14 +52,10 @@ export function Canvas({ elements, selectedElementId, onSelectElement, onUpdateE
               onSelect={onSelectElement}
               onUpdate={(newProps) => onUpdateElement(el.id, newProps)}
             >
-              {el.type === 'icon' && (
-                <img
-                  src={el.content}
-                  alt="Selected icon"
-                  className="w-full h-full"
-                  style={{ pointerEvents: 'none' }}
-                />
-              )}
+              {el.type === 'icon' ? (
+                <IconRenderer url={el.content} />
+              ) : null}
+
               {el.type === 'text' && (
                 <div
                   className="w-full h-full flex items-center justify-center text-center select-none"
