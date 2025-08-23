@@ -1,6 +1,6 @@
-# Logonada - AI-Powered Logo Maker
+# Logonada - Easy Logo Maker
 
-This is a Next.js application built with Firebase Studio that allows users to create custom logos. It leverages AI to provide design suggestions and offers a flexible canvas for users to bring their brand identity to life.
+This is a Next.js application built with Firebase Studio that allows users to create custom logos. It incorporates free icons and fonts to offer a flexible canvas for users to bring their brand identity to life.
 
 ## Features
 
