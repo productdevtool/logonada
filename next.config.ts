@@ -18,7 +18,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'cdn1.iconfinder.com',
+        hostname: '**.iconfinder.com',
         port: '',
         pathname: '/**',
       }
