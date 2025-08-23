@@ -2,7 +2,7 @@
 import posthog from 'posthog-js'
 import { PostHogProvider as PHProvider } from 'posthog-js/react'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, Suspense } from 'react'
 
 if (typeof window !== 'undefined') {
   posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
@@ -14,7 +14,7 @@ if (typeof window !== 'undefined') {
   })
 }
 
-export function PostHogPageview(): JSX.Element {
+function PostHogPageviewComponent(): JSX.Element {
     const pathname = usePathname();
     const searchParams = useSearchParams();
 
@@ -34,6 +34,14 @@ export function PostHogPageview(): JSX.Element {
     }, [pathname, searchParams])
 
     return <></>
+}
+
+export function PostHogPageview(): JSX.Element {
+    return (
+        <Suspense fallback={null}>
+            <PostHogPageviewComponent />
+        </Suspense>
+    )
 }
 
 
