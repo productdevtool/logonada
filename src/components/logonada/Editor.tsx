@@ -15,7 +15,7 @@ export type CanvasOrientation = 'horizontal' | 'vertical';
 
 export function Editor() {
   const [brandName, setBrandName] = useState('Logonada');
-  const [selectedIconUrl, setSelectedIconUrl] = useState<string | null>('https://api.iconfinder.com/v4/icons/211878/downloads/svg?apiKey=X0vjEUN6KRlxbp2DoUkyHeM0VOmxY91rA6BbU5j3Xu6wDodwS0McmilLPBWDUcJ1');
+  const [selectedIconUrl, setSelectedIconUrl] = useState<string>('https://api.iconfinder.com/v4/icons/211878/downloads/svg?apiKey=X0vjEUN6KRlxbp2DoUkyHeM0VOmxY91rA6BbU5j3Xu6wDodwS0McmilLPBWDUcJ1');
   const [font, setFont] = useState(googleFonts[0].family);
   const { toast } = useToast();
   const [canvasOrientation, setCanvasOrientation] = useState<CanvasOrientation>('horizontal');
@@ -24,9 +24,9 @@ export function Editor() {
     return orientation === 'horizontal' ? { width: 800, height: 400 } : { width: 400, height: 600 };
   }
 
-  const getInitialElements = (orientation: CanvasOrientation, iconUrl: string | null, currentBrandName: string, currentFont: string): CanvasElement[] => {
+  const getInitialElements = (orientation: CanvasOrientation, iconUrl: string, currentBrandName: string, currentFont: string): CanvasElement[] => {
     const {width, height} = getCanvasDimensions(orientation);
-    const iconContent = iconUrl || '';
+    const iconContent = iconUrl;
     if (orientation === 'vertical') {
         return [
             { id: 'brand-text', type: 'text', content: currentBrandName, x: (width/2) - 100, y: 350, width: 200, height: 50, fontFamily: currentFont, color: 'black' },
