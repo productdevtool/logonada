@@ -52,15 +52,11 @@ export function Canvas({ elements, selectedElementId, onSelectElement, onUpdateE
               onUpdate={(newProps) => onUpdateElement(el.id, newProps)}
             >
               {el.type === 'icon' && (
-                 <div
+                <img
+                  src={el.content}
+                  alt="Selected icon"
                   className="w-full h-full"
-                  style={{
-                    backgroundImage: `url(${el.content})`,
-                    backgroundSize: 'contain',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'center',
-                    pointerEvents: 'none',
-                  }}
+                  style={{ pointerEvents: 'none' }}
                 />
               )}
               {el.type === 'text' && (
