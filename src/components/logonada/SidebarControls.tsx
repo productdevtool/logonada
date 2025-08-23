@@ -1,3 +1,4 @@
+
 'use client'
 
 import React, { useState, useTransition } from 'react';
@@ -213,13 +214,13 @@ export function SidebarControls({
                     <input id="text-color" type="color" value={textColor} onChange={e => onTextColorChange(e.target.value)} className="w-24 p-1 rounded-md border border-input"/>
                 </div>
                 <div className="flex items-center justify-between">
-                    <Label htmlFor="canvas-bg-color">Background</Label>
-                    <div className="flex items-center gap-2">
-                        <input id="canvas-bg-color" type="color" value={canvasBackgroundColor} onChange={e => onCanvasBackgroundColorChange(e.target.value)} className="w-24 p-1 rounded-md border border-input"/>
-                        <Button variant="ghost" size="sm" onClick={() => onCanvasBackgroundColorChange('transparent')}>
-                            Transparent
+                    <div className="flex flex-col">
+                        <Label htmlFor="canvas-bg-color">Background</Label>
+                         <Button variant="link" size="sm" className="h-auto p-0 justify-start text-muted-foreground" onClick={() => onCanvasBackgroundColorChange('transparent')}>
+                            Remove
                         </Button>
                     </div>
+                    <input id="canvas-bg-color" type="color" value={canvasBackgroundColor} onChange={e => onCanvasBackgroundColorChange(e.target.value)} className="w-24 p-1 rounded-md border border-input"/>
                 </div>
               </AccordionContent>
             </AccordionItem>
