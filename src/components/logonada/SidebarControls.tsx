@@ -169,7 +169,7 @@ export function SidebarControls({
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="item-3">
-              <AccordionTrigger>Typography</AccordionTrigger>
+              <AccordionTrigger>Font</AccordionTrigger>
               <AccordionContent className="space-y-2">
                 <Select value={font.name} onValueChange={onFontChange}>
                   <SelectTrigger>
