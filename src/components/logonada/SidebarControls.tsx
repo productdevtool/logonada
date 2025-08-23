@@ -118,15 +118,6 @@ export function SidebarControls({
                             Vertical
                         </ToggleGroupItem>
                     </ToggleGroup>
-                    <div className="flex items-center justify-between">
-                        <Label htmlFor="canvas-bg-color">Background</Label>
-                        <div className="flex items-center gap-2">
-                            <input id="canvas-bg-color" type="color" value={canvasBackgroundColor} onChange={e => onCanvasBackgroundColorChange(e.target.value)} className="w-24 p-1 rounded-md border border-input"/>
-                            <Button variant="ghost" size="sm" onClick={() => onCanvasBackgroundColorChange('transparent')}>
-                                Transparent
-                            </Button>
-                        </div>
-                    </div>
                 </AccordionContent>
             </AccordionItem>
             <AccordionItem value="item-1">
@@ -220,6 +211,15 @@ export function SidebarControls({
                  <div className="flex items-center justify-between">
                     <Label htmlFor="text-color">Text Color</Label>
                     <input id="text-color" type="color" value={textColor} onChange={e => onTextColorChange(e.target.value)} className="w-24 p-1 rounded-md border border-input"/>
+                </div>
+                <div className="flex items-center justify-between">
+                    <Label htmlFor="canvas-bg-color">Background</Label>
+                    <div className="flex items-center gap-2">
+                        <input id="canvas-bg-color" type="color" value={canvasBackgroundColor} onChange={e => onCanvasBackgroundColorChange(e.target.value)} className="w-24 p-1 rounded-md border border-input"/>
+                        <Button variant="ghost" size="sm" onClick={() => onCanvasBackgroundColorChange('transparent')}>
+                            Transparent
+                        </Button>
+                    </div>
                 </div>
               </AccordionContent>
             </AccordionItem>
