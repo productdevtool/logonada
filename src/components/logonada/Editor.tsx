@@ -6,18 +6,10 @@ import { SidebarControls } from './SidebarControls';
 import { Canvas } from './Canvas';
 import { useToast } from '@/hooks/use-toast';
 import { googleFonts } from '@/lib/fonts';
+import { generateSvgAction } from '@/lib/actions';
+import type { CanvasElement as CanvasElementType } from '@/ai/flows/generate-svg-schemas';
 
-export interface CanvasElement {
-  id: string;
-  type: 'icon' | 'text';
-  name: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  fontFamily?: string;
-  color?: string;
-}
+export type CanvasElement = CanvasElementType;
 
 export type CanvasOrientation = 'horizontal' | 'vertical';
 
@@ -28,17 +20,21 @@ export function Editor() {
   const { toast } = useToast();
   const [canvasOrientation, setCanvasOrientation] = useState<CanvasOrientation>('horizontal');
 
+  const getCanvasDimensions = (orientation: CanvasOrientation) => {
+    return orientation === 'horizontal' ? { width: 800, height: 400 } : { width: 400, height: 600 };
+  }
+
   const getInitialElements = (orientation: CanvasOrientation): CanvasElement[] => {
     if (orientation === 'vertical') {
         return [
-            { id: 'brand-text', type: 'text', name: brandName, x: 100, y: 350, width: 200, height: 50, fontFamily: font },
-            { id: 'logo-icon', type: 'icon', name: 'Rocket', x: 130, y: 200, width: 140, height: 140 },
+            { id: 'brand-text', type: 'text', name: brandName, x: 100, y: 350, width: 200, height: 50, fontFamily: font, color: 'black' },
+            { id: 'logo-icon', type: 'icon', name: 'Rocket', x: 130, y: 200, width: 140, height: 140, color: 'black' },
         ];
     }
     // horizontal
     return [
-        { id: 'brand-text', type: 'text', name: brandName, x: 350, y: 175, width: 200, height: 50, fontFamily: font },
-        { id: 'logo-icon', type: 'icon', name: 'Rocket', x: 150, y: 130, width: 140, height: 140 },
+        { id: 'brand-text', type: 'text', name: brandName, x: 350, y: 175, width: 200, height: 50, fontFamily: font, color: 'black' },
+        { id: 'logo-icon', type: 'icon', name: 'Rocket', x: 150, y: 130, width: 140, height: 140, color: 'black' },
     ];
   };
 
@@ -69,16 +65,42 @@ export function Editor() {
     setElements(prev => prev.map(el => el.id === id ? { ...el, ...newProps } : el));
   }, []);
 
-  const handleDownload = (format: 'PNG' | 'JPG' | 'SVG') => {
-    toast({
-        title: "Download Started",
-        description: `Your logo will be downloaded as a ${format} file. (This is a placeholder)`,
-    });
+  const handleDownload = async (format: 'PNG' | 'JPG' | 'SVG') => {
+    if (format === 'SVG') {
+        const { width, height } = getCanvasDimensions(canvasOrientation);
+        try {
+            toast({ title: 'Generating SVG...', description: 'Your download will begin shortly.' });
+            const result = await generateSvgAction({ elements, canvasWidth: width, canvasHeight: height });
+            
+            const svgBlob = new Blob([result.svgString], { type: 'image/svg+xml' });
+            const svgUrl = URL.createObjectURL(svgBlob);
+            const downloadLink = document.createElement('a');
+            downloadLink.href = svgUrl;
+            downloadLink.download = `${brandName.toLowerCase().replace(/\s+/g, '-')}-logo.svg`;
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+            URL.revokeObjectURL(svgUrl);
+
+            toast({ title: 'SVG Download Started!', description: 'Check your downloads folder.' });
+
+        } catch (error) {
+            console.error('SVG Generation Error:', error);
+            toast({ title: 'SVG Generation Failed', description: 'There was an error generating your SVG.', variant: 'destructive' });
+        }
+
+    } else {
+        toast({
+            title: "Format Not Supported Yet",
+            description: `We're working on ${format} exports. For now, please use SVG.`,
+            variant: "destructive"
+        });
+    }
   }
 
   return (
     <SidebarProvider>
-      <Sidebar className="z-20">
+      <Sidebar className="z-20 w-[340px] p-[20px]">
         <SidebarControls
           brandName={brandName}
           onBrandNameChange={handleBrandNameChange}
