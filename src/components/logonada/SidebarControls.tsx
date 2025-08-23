@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { googleFonts } from '@/lib/fonts';
+import { googleFonts, type GoogleFont } from '@/lib/fonts';
 import * as LucideIcons from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { RectangleHorizontal, RectangleVertical, Loader } from 'lucide-react';
@@ -22,8 +22,10 @@ import { Label } from '@/components/ui/label';
 interface SidebarControlsProps {
   brandName: string;
   onBrandNameChange: (name: string) => void;
-  font: string;
+  font: GoogleFont;
   onFontChange: (font: string) => void;
+  fontWeight: string;
+  onFontWeightChange: (weight: string) => void;
   onIconSelect: (url: string) => void;
   onDownload: (format: 'PNG' | 'JPG' | 'SVG') => void;
   canvasOrientation: CanvasOrientation;
@@ -39,6 +41,8 @@ export function SidebarControls({
   onBrandNameChange,
   font,
   onFontChange,
+  fontWeight,
+  onFontWeightChange,
   onIconSelect,
   onDownload,
   canvasOrientation,
@@ -166,18 +170,30 @@ export function SidebarControls({
             </AccordionItem>
             <AccordionItem value="item-3">
               <AccordionTrigger>Typography</AccordionTrigger>
-              <AccordionContent>
-                <Select value={font} onValueChange={onFontChange}>
+              <AccordionContent className="space-y-2">
+                <Select value={font.name} onValueChange={onFontChange}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a font" />
                   </SelectTrigger>
                   <SelectContent>
-                    {googleFonts.map((font) => (
-                      <SelectItem key={font.name} value={font.family} style={{ fontFamily: font.family }}>
-                        {font.name}
+                    {googleFonts.map((f) => (
+                      <SelectItem key={f.name} value={f.name} style={{ fontFamily: f.family }}>
+                        {f.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
+                </Select>
+                <Select value={fontWeight} onValueChange={onFontWeightChange} disabled={font.weights.length <= 1}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Select a weight" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {font.weights.map((weight) => (
+                        <SelectItem key={weight} value={weight} style={{ fontFamily: font.family, fontWeight: weight }}>
+                            {weight}
+                        </SelectItem>
+                        ))}
+                    </SelectContent>
                 </Select>
               </AccordionContent>
             </AccordionItem>

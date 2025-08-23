@@ -30,8 +30,8 @@ export function Canvas({ elements, selectedElementId, onSelectElement, onUpdateE
         const { width: containerWidth, height: containerHeight } = containerRef.current.getBoundingClientRect();
         const { width: canvasWidth, height: canvasHeight } = canvasSize[orientation];
         
-        const scaleX = containerWidth / canvasWidth;
-        const scaleY = containerHeight / canvasHeight;
+        const scaleX = (containerWidth - 32) / canvasWidth; // 32px padding
+        const scaleY = (containerHeight - 32) / canvasHeight;
         
         setScale(Math.min(scaleX, scaleY, 1));
       }
@@ -99,7 +99,8 @@ export function Canvas({ elements, selectedElementId, onSelectElement, onUpdateE
                         className="w-full h-full flex items-center justify-center text-center select-none"
                         style={{
                             fontFamily: el.fontFamily,
-                            fontSize: `${el.height}px`, // Simple font scaling
+                            fontSize: `${el.height}px`,
+                            fontWeight: el.fontWeight,
                             pointerEvents: 'none',
                             lineHeight: 1,
                             color: el.color,

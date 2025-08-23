@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { SidebarControls } from './SidebarControls';
 import { Canvas } from './Canvas';
@@ -9,7 +9,9 @@ import { googleFonts } from '@/lib/fonts';
 import { renderToSvgString } from '@/lib/svg-renderer';
 import type { CanvasElement as CanvasElementType } from '@/lib/svg-renderer';
 
-export type CanvasElement = CanvasElementType;
+export type CanvasElement = Omit<CanvasElementType, 'fontWeight'> & {
+  fontWeight?: string;
+};
 
 export type CanvasOrientation = 'horizontal' | 'vertical';
 
@@ -20,7 +22,8 @@ const placeholderSvgDataUrl = `data:image/svg+xml;base64,${btoa(placeholderSvg)}
 export function Editor() {
   const [brandName, setBrandName] = useState('Logonada');
   const [selectedIconUrl, setSelectedIconUrl] = useState<string>(placeholderSvgDataUrl);
-  const [font, setFont] = useState(googleFonts[0].family);
+  const [font, setFont] = useState(googleFonts.find(f => f.name === 'Inter') || googleFonts[0]);
+  const [fontWeight, setFontWeight] = useState('400');
   const { toast } = useToast();
   const [canvasOrientation, setCanvasOrientation] = useState<CanvasOrientation>('horizontal');
 
@@ -28,23 +31,23 @@ export function Editor() {
     return orientation === 'horizontal' ? { width: 800, height: 400 } : { width: 400, height: 600 };
   }
 
-  const getInitialElements = (orientation: CanvasOrientation, iconUrl: string, currentBrandName: string, currentFont: string): CanvasElement[] => {
+  const getInitialElements = (orientation: CanvasOrientation, iconUrl: string, currentBrandName: string, currentFont: typeof font, currentWeight: string): CanvasElement[] => {
     const {width, height} = getCanvasDimensions(orientation);
     const iconContent = iconUrl;
     if (orientation === 'vertical') {
         return [
-            { id: 'brand-text', type: 'text', content: currentBrandName, x: (width/2) - 100, y: 350, width: 200, height: 50, fontFamily: currentFont, color: '#000000' },
+            { id: 'brand-text', type: 'text', content: currentBrandName, x: (width/2) - 100, y: 350, width: 200, height: 50, fontFamily: currentFont.family, fontWeight: currentWeight, color: '#000000' },
             { id: 'logo-icon', type: 'icon', content: iconContent, x: (width/2) - 70, y: 200, width: 140, height: 140, color: '#000000' },
         ];
     }
     // horizontal
     return [
-        { id: 'brand-text', type: 'text', content: currentBrandName, x: 400, y: 175, width: 200, height: 50, fontFamily: currentFont, color: '#000000' },
+        { id: 'brand-text', type: 'text', content: currentBrandName, x: 400, y: 175, width: 200, height: 50, fontFamily: currentFont.family, fontWeight: currentWeight, color: '#000000' },
         { id: 'logo-icon', type: 'icon', content: iconContent, x: 200, y: 130, width: 140, height: 140, color: '#000000' },
     ];
   };
 
-  const [elements, setElements] = useState<CanvasElement[]>(getInitialElements(canvasOrientation, selectedIconUrl, brandName, font));
+  const [elements, setElements] = useState<CanvasElement[]>(getInitialElements(canvasOrientation, selectedIconUrl, brandName, font, fontWeight));
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
 
   const handleBrandNameChange = useCallback((newName: string) => {
@@ -52,9 +55,20 @@ export function Editor() {
     setElements(prev => prev.map(el => el.id === 'brand-text' ? { ...el, content: newName } : el));
   }, []);
 
-  const handleFontChange = useCallback((newFont: string) => {
+  const handleFontChange = useCallback((fontName: string) => {
+    const newFont = googleFonts.find(f => f.name === fontName) || font;
     setFont(newFont);
-    setElements(prev => prev.map(el => el.id === 'brand-text' ? { ...el, fontFamily: newFont } : el));
+    
+    // Reset weight if not available in the new font
+    const newWeight = newFont.weights.includes(fontWeight as any) ? fontWeight : newFont.weights[0];
+    setFontWeight(newWeight);
+    
+    setElements(prev => prev.map(el => el.id === 'brand-text' ? { ...el, fontFamily: newFont.family, fontWeight: newWeight } : el));
+  }, [font, fontWeight]);
+  
+  const handleFontWeightChange = useCallback((newWeight: string) => {
+    setFontWeight(newWeight);
+    setElements(prev => prev.map(el => el.id === 'brand-text' ? { ...el, fontWeight: newWeight } : el));
   }, []);
 
   const handleIconSelect = useCallback((iconUrl: string) => {
@@ -64,8 +78,8 @@ export function Editor() {
 
   const handleOrientationChange = useCallback((orientation: CanvasOrientation) => {
     setCanvasOrientation(orientation);
-    setElements(getInitialElements(orientation, selectedIconUrl, brandName, font));
-  }, [brandName, font, selectedIconUrl]);
+    setElements(getInitialElements(orientation, selectedIconUrl, brandName, font, fontWeight));
+  }, [brandName, font, fontWeight, selectedIconUrl]);
 
   const updateElement = useCallback((id: string, newProps: Partial<CanvasElement>) => {
     setElements(prev => prev.map(el => el.id === id ? { ...el, ...newProps } : el));
@@ -111,6 +125,11 @@ export function Editor() {
   
   const iconElement = elements.find(el => el.type === 'icon');
   const textElement = elements.find(el => el.type === 'text');
+  
+  const selectedFont = useMemo(() => {
+    const family = textElement?.fontFamily;
+    return googleFonts.find(f => f.family === family) || font;
+  }, [textElement, font]);
 
   return (
     <SidebarProvider>
@@ -118,8 +137,10 @@ export function Editor() {
         <SidebarControls
           brandName={brandName}
           onBrandNameChange={handleBrandNameChange}
-          font={font}
+          font={selectedFont}
           onFontChange={handleFontChange}
+          fontWeight={fontWeight}
+          onFontWeightChange={handleFontWeightChange}
           onIconSelect={handleIconSelect}
           onDownload={handleDownload}
           canvasOrientation={canvasOrientation}
