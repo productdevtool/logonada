@@ -34,6 +34,8 @@ interface SidebarControlsProps {
   onIconColorChange: (color: string) => void;
   textColor: string;
   onTextColorChange: (color: string) => void;
+  canvasBackgroundColor: string;
+  onCanvasBackgroundColorChange: (color: string) => void;
 }
 
 export function SidebarControls({
@@ -51,6 +53,8 @@ export function SidebarControls({
   onIconColorChange,
   textColor,
   onTextColorChange,
+  canvasBackgroundColor,
+  onCanvasBackgroundColorChange,
 }: SidebarControlsProps) {
   const [iconSearch, setIconSearch] = useState('rocket');
   const [isSearching, startSearchTransition] = useTransition();
@@ -98,7 +102,7 @@ export function SidebarControls({
           <Accordion type="multiple" defaultValue={['item-5', 'item-1']} className="w-full px-5">
             <AccordionItem value="item-5">
                 <AccordionTrigger>Canvas</AccordionTrigger>
-                <AccordionContent>
+                <AccordionContent className="space-y-4">
                     <ToggleGroup 
                         type="single" 
                         className="w-full"
@@ -114,6 +118,15 @@ export function SidebarControls({
                             Vertical
                         </ToggleGroupItem>
                     </ToggleGroup>
+                    <div className="flex items-center justify-between">
+                        <Label htmlFor="canvas-bg-color">Background</Label>
+                        <div className="flex items-center gap-2">
+                            <input id="canvas-bg-color" type="color" value={canvasBackgroundColor} onChange={e => onCanvasBackgroundColorChange(e.target.value)} className="w-24 p-1 rounded-md border border-input"/>
+                            <Button variant="ghost" size="sm" onClick={() => onCanvasBackgroundColorChange('transparent')}>
+                                Transparent
+                            </Button>
+                        </div>
+                    </div>
                 </AccordionContent>
             </AccordionItem>
             <AccordionItem value="item-1">

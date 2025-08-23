@@ -12,9 +12,10 @@ interface CanvasProps {
   onSelectElement: (id: string | null) => void;
   onUpdateElement: (id: string, newProps: Partial<CanvasElement>) => void;
   orientation: CanvasOrientation;
+  backgroundColor: string;
 }
 
-export function Canvas({ elements, selectedElementId, onSelectElement, onUpdateElement, orientation }: CanvasProps) {
+export function Canvas({ elements, selectedElementId, onSelectElement, onUpdateElement, orientation, backgroundColor }: CanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -72,9 +73,20 @@ export function Canvas({ elements, selectedElementId, onSelectElement, onUpdateE
             <div
                 ref={canvasRef}
                 className={cn(
-                "relative bg-white dark:bg-gray-900 shadow-lg rounded-lg overflow-hidden transition-all duration-300 w-full h-full"
+                "relative shadow-lg rounded-lg overflow-hidden transition-all duration-300 w-full h-full"
                 )}
-                style={{ cursor: 'auto' }}
+                style={{ 
+                    cursor: 'auto',
+                    backgroundColor: backgroundColor,
+                    backgroundImage: backgroundColor === 'transparent' ? `
+                        linear-gradient(45deg, #ccc 25%, transparent 25%), 
+                        linear-gradient(-45deg, #ccc 25%, transparent 25%), 
+                        linear-gradient(45deg, transparent 75%, #ccc 75%), 
+                        linear-gradient(-45deg, transparent 75%, #ccc 75%)` : 'none',
+                    backgroundSize: backgroundColor === 'transparent' ? '20px 20px' : 'auto',
+                    backgroundPosition: backgroundColor === 'transparent' ? '0 0, 0 10px, 10px -10px, -10px 0px' : 'auto',
+
+                 }}
                 onClick={handleCanvasClick}
             >
                 {elements.map((el) => {

@@ -26,6 +26,7 @@ export function Editor() {
   const [fontWeight, setFontWeight] = useState('400');
   const { toast } = useToast();
   const [canvasOrientation, setCanvasOrientation] = useState<CanvasOrientation>('horizontal');
+  const [canvasBackgroundColor, setCanvasBackgroundColor] = useState<string>('#FFFFFF');
 
   const getCanvasDimensions = (orientation: CanvasOrientation) => {
     return orientation === 'horizontal' ? { width: 800, height: 400 } : { width: 400, height: 600 };
@@ -145,6 +146,8 @@ export function Editor() {
           onIconColorChange={(color) => handleColorChange('logo-icon', color)}
           textColor={textElement?.color || '#000000'}
           onTextColorChange={(color) => handleColorChange('brand-text', color)}
+          canvasBackgroundColor={canvasBackgroundColor}
+          onCanvasBackgroundColorChange={setCanvasBackgroundColor}
         />
       </Sidebar>
       <SidebarInset>
@@ -154,6 +157,7 @@ export function Editor() {
           onSelectElement={setSelectedElementId}
           onUpdateElement={updateElement}
           orientation={canvasOrientation}
+          backgroundColor={canvasBackgroundColor}
         />
       </SidebarInset>
     </SidebarProvider>
