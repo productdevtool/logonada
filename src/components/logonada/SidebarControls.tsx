@@ -89,7 +89,7 @@ export function SidebarControls({
     <>
       <SidebarHeader>
         <div className="flex items-center gap-2">
-            <LucideIcons.Sparkles className="text-primary w-8 h-8"/>
+            <LucideIcons.Paintbrush className="text-primary w-8 h-8"/>
             <h1 className="text-xl font-semibold">Logonada</h1>
         </div>
       </SidebarHeader>
