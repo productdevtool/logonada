@@ -8,7 +8,6 @@ import { useToast } from '@/hooks/use-toast';
 import { googleFonts, type GoogleFont } from '@/lib/fonts';
 import { renderToSvgString } from '@/lib/svg-renderer';
 import type { CanvasElement as CanvasElementType } from '@/lib/svg-renderer';
-import { Canvg } from 'canvg';
 
 export type CanvasElement = Omit<CanvasElementType, 'fontWeight'> & {
   fontWeight?: string;
@@ -111,6 +110,8 @@ export function Editor() {
             triggerDownload(svgUrl, `${filename}.svg`);
             URL.revokeObjectURL(svgUrl);
         } else if (format === 'JPG' || format === 'PNG') {
+            const svgDataUrl = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgString)))}`;
+            
             const canvas = document.createElement('canvas');
             canvas.width = width;
             canvas.height = height;
@@ -119,13 +120,18 @@ export function Editor() {
                 throw new Error('Could not get canvas context');
             }
 
-            const v = await Canvg.from(ctx, svgString);
-            await v.render();
-            
-            const mimeType = format === 'JPG' ? 'image/jpeg' : 'image/png';
-            const dataUrl = canvas.toDataURL(mimeType, format === 'JPG' ? 0.9 : undefined);
-
-            triggerDownload(dataUrl, `${filename}.${format.toLowerCase()}`);
+            const img = new Image();
+            img.onload = () => {
+                ctx.drawImage(img, 0, 0);
+                const mimeType = format === 'JPG' ? 'image/jpeg' : 'image/png';
+                const quality = format === 'JPG' ? 0.9 : 1.0;
+                const dataUrl = canvas.toDataURL(mimeType, quality);
+                triggerDownload(dataUrl, `${filename}.${format.toLowerCase()}`);
+            };
+            img.onerror = () => {
+                throw new Error('Failed to load SVG image for conversion.');
+            }
+            img.src = svgDataUrl;
         }
         
         toast({ title: `${format} Download Started!`, description: 'Check your downloads folder.' });

@@ -33,7 +33,7 @@ async function encodeResourceAsBase64(url: string): Promise<string> {
   }
   const buffer = await response.arrayBuffer();
   const base64 = Buffer.from(buffer).toString('base64');
-  const contentType = response.headers.get('content-type');
+  const contentType = response.headers.get('content-type') || 'image/svg+xml';
   return `data:${contentType};base64,${base64}`;
 }
 
@@ -61,7 +61,12 @@ export async function renderToSvgString({ elements, canvasWidth, canvasHeight, b
         return `family=${fontName}:wght@${weights}`;
     }).join('&');
 
-    const cssResponse = await fetch(googleFontUrl);
+    const cssResponse = await fetch(googleFontUrl, {
+      headers: {
+        // A more robust user-agent to mimic a browser
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+      }
+    });
     if (cssResponse.ok) {
         let cssText = await cssResponse.text();
         const fontUrlRegex = /url\((https?:\/\/[^)]+)\)/g;
@@ -86,21 +91,18 @@ export async function renderToSvgString({ elements, canvasWidth, canvasHeight, b
       return `<text x="${el.x + el.width / 2}" y="${el.y + el.height / 2}" font-family="${el.fontFamily}" font-weight="${el.fontWeight || '400'}" font-size="${el.height}" fill="${el.color || 'black'}" text-anchor="middle" dominant-baseline="central">${el.content}</text>`;
     }
     if (el.type === 'icon') {
-        let iconSvgContent = await getIconSvgAction(el.content);
+        // Let's check if the content is already a data URL
+        if (el.content.startsWith('data:image/svg+xml;base64,')) {
+          return `<image href="${el.content}" x="${el.x}" y="${el.y}" width="${el.width}" height="${el.height}" />`;
+        }
 
-        const viewBoxMatch = iconSvgContent.match(/viewBox="([0-9\s\.]+)"/);
-        const viewBox = viewBoxMatch ? viewBoxMatch[1].split(' ').map(parseFloat) : [0, 0, 24, 24];
-        const originalWidth = viewBox[2];
-        const originalHeight = viewBox[3];
-        
-        iconSvgContent = iconSvgContent.replace(/<\?xml[^>]*\?>/g, '');
-        const svgContentMatch = iconSvgContent.match(/<svg[^>]*>([\s\S]*)<\/svg>/);
-        iconSvgContent = svgContentMatch ? svgContentMatch[1] : '';
+        // Otherwise, fetch and encode it.
+        const iconSvgContent = await getIconSvgAction(el.content);
+        const coloredSvg = iconSvgContent.replace('<svg ', `<svg fill="${el.color || 'black'}" `);
+        const base64Icon = Buffer.from(coloredSvg).toString('base64');
+        const dataUrl = `data:image/svg+xml;base64,${base64Icon}`;
 
-        const scaleX = el.width / originalWidth;
-        const scaleY = el.height / originalHeight;
-
-        return `<g transform="translate(${el.x}, ${el.y}) scale(${scaleX} ${scaleY})" fill="${el.color || 'black'}">${iconSvgContent}</g>`;
+        return `<image href="${dataUrl}" x="${el.x}" y="${el.y}" width="${el.width}" height="${el.height}" />`;
     }
     return '';
   }));
