@@ -8,7 +8,7 @@ import { googleFonts } from './fonts';
 export interface CanvasElement {
   id: string;
   type: 'icon' | 'text';
-  content: string;
+  content: string; // For text, this is the string. For icons, it's the SVG URL.
   x: number;
   y: number;
   width: number;
@@ -38,8 +38,8 @@ export async function renderToSvgString({ elements, canvasWidth, canvasHeight }:
     }, new Map<string, Set<string>>());
 
   const fontFamilies = Array.from(uniqueFonts.keys());
-  
-  const googleFontUrl = fontFamilies.length > 0 
+
+  const googleFontUrl = fontFamilies.length > 0
     ? 'https://fonts.googleapis.com/css2?' + fontFamilies.map(family => {
         const fontName = family.split(',')[0].replace(/'/g, '').replace(/\s/g, '+');
         const fontData = googleFonts.find(f => f.family === family);
@@ -47,8 +47,8 @@ export async function renderToSvgString({ elements, canvasWidth, canvasHeight }:
         return `family=${fontName}:wght@${weights}`;
     }).join('&')
     : '';
-    
-  const fontImport = googleFontUrl ? `@import url('${googleFontUrl}&display=swap');` : '';
+
+  const fontImport = googleFontUrl ? `@import url('${googleFontUrl}');` : '';
 
   const elementSvgs = await Promise.all(elements.map(async (el) => {
     if (el.type === 'text') {
