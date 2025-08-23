@@ -24,22 +24,23 @@ export function Editor() {
     return orientation === 'horizontal' ? { width: 800, height: 400 } : { width: 400, height: 600 };
   }
 
-  const getInitialElements = (orientation: CanvasOrientation): CanvasElement[] => {
+  const getInitialElements = (orientation: CanvasOrientation, iconUrl: string | null, currentBrandName: string, currentFont: string): CanvasElement[] => {
     const {width, height} = getCanvasDimensions(orientation);
+    const iconContent = iconUrl || '';
     if (orientation === 'vertical') {
         return [
-            { id: 'brand-text', type: 'text', content: brandName, x: (width/2) - 100, y: 350, width: 200, height: 50, fontFamily: font, color: 'black' },
-            { id: 'logo-icon', type: 'icon', content: selectedIconUrl!, x: (width/2) - 70, y: 200, width: 140, height: 140 },
+            { id: 'brand-text', type: 'text', content: currentBrandName, x: (width/2) - 100, y: 350, width: 200, height: 50, fontFamily: currentFont, color: 'black' },
+            { id: 'logo-icon', type: 'icon', content: iconContent, x: (width/2) - 70, y: 200, width: 140, height: 140 },
         ];
     }
     // horizontal
     return [
-        { id: 'brand-text', type: 'text', content: brandName, x: 400, y: 175, width: 200, height: 50, fontFamily: font, color: 'black' },
-        { id: 'logo-icon', type: 'icon', content: selectedIconUrl!, x: 200, y: 130, width: 140, height: 140 },
+        { id: 'brand-text', type: 'text', content: currentBrandName, x: 400, y: 175, width: 200, height: 50, fontFamily: currentFont, color: 'black' },
+        { id: 'logo-icon', type: 'icon', content: iconContent, x: 200, y: 130, width: 140, height: 140 },
     ];
   };
 
-  const [elements, setElements] = useState<CanvasElement[]>(getInitialElements(canvasOrientation));
+  const [elements, setElements] = useState<CanvasElement[]>(getInitialElements(canvasOrientation, selectedIconUrl, brandName, font));
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
 
   const handleBrandNameChange = useCallback((newName: string) => {
@@ -59,12 +60,7 @@ export function Editor() {
 
   const handleOrientationChange = useCallback((orientation: CanvasOrientation) => {
     setCanvasOrientation(orientation);
-    const newElements = getInitialElements(orientation);
-    setElements(newElements.map(el => {
-        if (el.id === 'brand-text') return { ...el, content: brandName, fontFamily: font };
-        if (el.id === 'logo-icon') return { ...el, content: selectedIconUrl || '' };
-        return el;
-    }));
+    setElements(getInitialElements(orientation, selectedIconUrl, brandName, font));
   }, [brandName, font, selectedIconUrl]);
 
   const updateElement = useCallback((id: string, newProps: Partial<CanvasElement>) => {
