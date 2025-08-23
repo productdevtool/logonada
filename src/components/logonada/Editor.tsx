@@ -103,19 +103,37 @@ export function Editor() {
     toast({ title: `Generating ${format}...`, description: 'Your download will begin shortly.' });
 
     try {
-        const svgString = await renderToSvgString({ elements, canvasWidth: width, canvasHeight: height, backgroundColor: canvasBackgroundColor });
-
         if (format === 'SVG') {
+            const svgString = await renderToSvgString({ elements, canvasWidth: width, canvasHeight: height, backgroundColor: canvasBackgroundColor });
             const svgBlob = new Blob([svgString], { type: 'image/svg+xml' });
             const svgUrl = URL.createObjectURL(svgBlob);
             triggerDownload(svgUrl, `${filename}.svg`);
             URL.revokeObjectURL(svgUrl);
         } else if (format === 'JPG' || format === 'PNG') {
+            const scaleFactor = format === 'JPG' ? 3 : 1;
+            const scaledWidth = width * scaleFactor;
+            const scaledHeight = height * scaleFactor;
+            
+            const scaledElements = elements.map(el => ({
+                ...el,
+                x: el.x * scaleFactor,
+                y: el.y * scaleFactor,
+                width: el.width * scaleFactor,
+                height: el.height * scaleFactor,
+            }));
+
+            const svgString = await renderToSvgString({ 
+                elements: scaledElements, 
+                canvasWidth: scaledWidth, 
+                canvasHeight: scaledHeight, 
+                backgroundColor: canvasBackgroundColor 
+            });
+            
             const svgDataUrl = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgString)))}`;
             
             const canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
+            canvas.width = scaledWidth;
+            canvas.height = scaledHeight;
             const ctx = canvas.getContext('2d');
             if (!ctx) {
                 throw new Error('Could not get canvas context');
