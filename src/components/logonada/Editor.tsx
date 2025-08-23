@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { googleFonts, type GoogleFont } from '@/lib/fonts';
 import { renderToSvgString } from '@/lib/svg-renderer';
 import type { CanvasElement as CanvasElementType } from '@/lib/svg-renderer';
+import { usePostHog } from 'posthog-js/react';
 
 export type CanvasElement = Omit<CanvasElementType, 'fontWeight'> & {
   fontWeight?: string;
@@ -21,6 +22,7 @@ const placeholderSvgDataUrl = `data:image/svg+xml;base64,${btoa(placeholderSvg)}
 
 
 export function Editor() {
+  const posthog = usePostHog();
   const [brandName, setBrandName] = useState('Logonada');
   const [selectedIconUrl, setSelectedIconUrl] = useState<string>(placeholderSvgDataUrl);
   const [font, setFont] = useState<GoogleFont>(googleFonts.find(f => f.name === 'Inter') || googleFonts[0]);
@@ -79,9 +81,10 @@ export function Editor() {
   }, []);
 
   const handleOrientationChange = useCallback((orientation: CanvasOrientation) => {
+    posthog.capture('Orientation Changed', { orientation: orientation });
     setCanvasOrientation(orientation);
     setElements(getInitialElements(orientation, selectedIconUrl, brandName, font, fontWeight));
-  }, [brandName, font, fontWeight, selectedIconUrl]);
+  }, [brandName, font, fontWeight, selectedIconUrl, posthog]);
 
   const updateElement = useCallback((id: string, newProps: Partial<CanvasElement>) => {
     setElements(prev => prev.map(el => el.id === id ? { ...el, ...newProps } : el));
@@ -97,6 +100,7 @@ export function Editor() {
   }
 
   const handleDownload = async (format: 'PNG' | 'JPG' | 'SVG') => {
+    posthog.capture('Download Clicked', { format: format });
     const { width, height } = getCanvasDimensions(canvasOrientation);
     const filename = `${brandName.toLowerCase().replace(/\s+/g, '-')}-logo`;
     

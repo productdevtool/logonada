@@ -3,6 +3,8 @@ import { Inter } from 'next/font/google';
 import { Toaster } from "@/components/ui/toaster";
 import './globals.css';
 import { googleFonts } from '@/lib/fonts';
+import { PostHogProvider } from '@/components/providers/PostHogProvider';
+import { CSPostHogProvider } from '@/components/providers/PostHogProvider';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -33,10 +35,14 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href={getGoogleFontUrl()} rel="stylesheet" />
       </head>
-      <body className={`${inter.variable} font-sans antialiased`}>
-        {children}
-        <Toaster />
-      </body>
+      <CSPostHogProvider>
+        <body className={`${inter.variable} font-sans antialiased`}>
+            <PostHogProvider>
+                {children}
+            </PostHogProvider>
+            <Toaster />
+        </body>
+      </CSPostHogProvider>
     </html>
   );
 }

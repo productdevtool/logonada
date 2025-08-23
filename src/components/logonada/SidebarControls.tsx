@@ -18,6 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '../ui/skeleton';
 import Image from 'next/image';
 import { Label } from '@/components/ui/label';
+import { usePostHog } from 'posthog-js/react';
 
 
 interface SidebarControlsProps {
@@ -57,6 +58,7 @@ export function SidebarControls({
   canvasBackgroundColor,
   onCanvasBackgroundColorChange,
 }: SidebarControlsProps) {
+  const posthog = usePostHog()
   const [iconSearch, setIconSearch] = useState('rocket');
   const [isSearching, startSearchTransition] = useTransition();
   const [searchResults, setSearchResults] = useState<IconifySearchResponse | null>(null);
@@ -70,6 +72,7 @@ export function SidebarControls({
     };
     startSearchTransition(async () => {
         try {
+            posthog.capture('Icon Searched', { query: iconSearch });
             const results = await searchIconsAction(iconSearch);
             setSearchResults(results);
         } catch (error) {
@@ -88,6 +91,7 @@ export function SidebarControls({
         const results = await searchIconsAction(iconSearch);
         setSearchResults(results);
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
