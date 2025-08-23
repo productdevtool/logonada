@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { SidebarControls } from './SidebarControls';
 import { Canvas } from './Canvas';
 import { useToast } from '@/hooks/use-toast';
-import { googleFonts } from '@/lib/fonts';
+import { googleFonts, type GoogleFont } from '@/lib/fonts';
 import { renderToSvgString } from '@/lib/svg-renderer';
 import type { CanvasElement as CanvasElementType } from '@/lib/svg-renderer';
 
@@ -22,7 +22,7 @@ const placeholderSvgDataUrl = `data:image/svg+xml;base64,${btoa(placeholderSvg)}
 export function Editor() {
   const [brandName, setBrandName] = useState('Logonada');
   const [selectedIconUrl, setSelectedIconUrl] = useState<string>(placeholderSvgDataUrl);
-  const [font, setFont] = useState(googleFonts.find(f => f.name === 'Inter') || googleFonts[0]);
+  const [font, setFont] = useState<GoogleFont>(googleFonts.find(f => f.name === 'Inter') || googleFonts[0]);
   const [fontWeight, setFontWeight] = useState('400');
   const { toast } = useToast();
   const [canvasOrientation, setCanvasOrientation] = useState<CanvasOrientation>('horizontal');
@@ -126,10 +126,6 @@ export function Editor() {
   const iconElement = elements.find(el => el.type === 'icon');
   const textElement = elements.find(el => el.type === 'text');
   
-  const selectedFont = useMemo(() => {
-    const family = textElement?.fontFamily;
-    return googleFonts.find(f => f.family === family) || font;
-  }, [textElement, font]);
 
   return (
     <SidebarProvider>
@@ -137,7 +133,7 @@ export function Editor() {
         <SidebarControls
           brandName={brandName}
           onBrandNameChange={handleBrandNameChange}
-          font={selectedFont}
+          font={font}
           onFontChange={handleFontChange}
           fontWeight={fontWeight}
           onFontWeightChange={handleFontWeightChange}
