@@ -10,8 +10,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { icons } from '@/lib/icons';
 import { googleFonts } from '@/lib/fonts';
 import * as LucideIcons from 'lucide-react';
-import { LayoutSuggestions } from './LayoutSuggestions';
-import type { GenerateLayoutSuggestionsOutput } from '@/ai/flows/generate-layout-suggestions';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { RectangleHorizontal, RectangleVertical } from 'lucide-react';
 import type { CanvasOrientation } from './Editor';
@@ -22,10 +20,6 @@ interface SidebarControlsProps {
   font: string;
   onFontChange: (font: string) => void;
   onIconSelect: (icon: { name: string, icon: string }) => void;
-  onGenerateSuggestions: () => void;
-  isLoadingSuggestions: boolean;
-  layoutSuggestions: GenerateLayoutSuggestionsOutput['suggestions'];
-  applyLayoutSuggestion: (suggestion: GenerateLayoutSuggestionsOutput['suggestions'][0]) => void;
   onDownload: (format: 'PNG' | 'JPG' | 'SVG') => void;
   canvasOrientation: CanvasOrientation;
   onCanvasOrientationChange: (orientation: CanvasOrientation) => void;
@@ -37,10 +31,6 @@ export function SidebarControls({
   font,
   onFontChange,
   onIconSelect,
-  onGenerateSuggestions,
-  isLoadingSuggestions,
-  layoutSuggestions,
-  applyLayoutSuggestion,
   onDownload,
   canvasOrientation,
   onCanvasOrientationChange
@@ -59,7 +49,7 @@ export function SidebarControls({
       </SidebarHeader>
       <ScrollArea className="flex-grow">
         <SidebarContent>
-          <Accordion type="multiple" defaultValue={['item-1', 'item-2', 'item-3', 'item-4', 'item-5']} className="w-full px-2">
+          <Accordion type="multiple" defaultValue={['item-1', 'item-2', 'item-3', 'item-5']} className="w-full px-2">
             <AccordionItem value="item-5">
                 <AccordionTrigger>Canvas</AccordionTrigger>
                 <AccordionContent>
@@ -133,20 +123,6 @@ export function SidebarControls({
                     ))}
                   </SelectContent>
                 </Select>
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="item-4">
-              <AccordionTrigger>AI Layouts</AccordionTrigger>
-              <AccordionContent>
-                 <Button className="w-full" onClick={onGenerateSuggestions} disabled={isLoadingSuggestions}>
-                    {isLoadingSuggestions ? <LucideIcons.Loader className="animate-spin mr-2" /> : <LucideIcons.Sparkles className="mr-2 h-4 w-4" />}
-                    Generate Suggestions
-                </Button>
-                <LayoutSuggestions
-                    suggestions={layoutSuggestions}
-                    onApply={applyLayoutSuggestion}
-                    isLoading={isLoadingSuggestions}
-                />
               </AccordionContent>
             </AccordionItem>
           </Accordion>
