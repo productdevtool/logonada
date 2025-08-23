@@ -3,9 +3,8 @@
 import React, { useRef } from 'react';
 import type { CanvasElement, CanvasOrientation } from './Editor';
 import { DraggableResizable } from './DraggableResizable';
-import * as LucideIcons from 'lucide-react';
-import { icons } from '@/lib/icons';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 interface CanvasProps {
   elements: CanvasElement[];
@@ -40,10 +39,6 @@ export function Canvas({ elements, selectedElementId, onSelectElement, onUpdateE
         onClick={handleCanvasClick}
       >
         {elements.map((el) => {
-          const IconComponent = el.type === 'icon' 
-            ? LucideIcons[icons.find(i => i.name === el.name)?.icon as keyof typeof LucideIcons] 
-            : null;
-
           return (
             <DraggableResizable
               key={el.id}
@@ -56,11 +51,16 @@ export function Canvas({ elements, selectedElementId, onSelectElement, onUpdateE
               onSelect={onSelectElement}
               onUpdate={(newProps) => onUpdateElement(el.id, newProps)}
             >
-              {el.type === 'icon' && IconComponent && (
-                <IconComponent
+              {el.type === 'icon' && (
+                 <div
                   className="w-full h-full"
-                  color="currentColor"
-                  style={{ pointerEvents: 'none' }}
+                  style={{
+                    backgroundImage: `url(${el.content})`,
+                    backgroundSize: 'contain',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'center',
+                    pointerEvents: 'none',
+                  }}
                 />
               )}
               {el.type === 'text' && (
@@ -71,9 +71,10 @@ export function Canvas({ elements, selectedElementId, onSelectElement, onUpdateE
                     fontSize: `${el.height}px`, // Simple font scaling
                     pointerEvents: 'none',
                     lineHeight: 1,
+                    color: el.color,
                   }}
                 >
-                  {el.name}
+                  {el.content}
                 </div>
               )}
             </DraggableResizable>

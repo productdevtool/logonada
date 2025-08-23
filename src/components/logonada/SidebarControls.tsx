@@ -1,25 +1,29 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useState, useTransition } from 'react';
 import { SidebarHeader, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel } from '@/components/ui/sidebar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { icons } from '@/lib/icons';
 import { googleFonts } from '@/lib/fonts';
 import * as LucideIcons from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { RectangleHorizontal, RectangleVertical } from 'lucide-react';
+import { RectangleHorizontal, RectangleVertical, Loader } from 'lucide-react';
 import type { CanvasOrientation } from './Editor';
+import { searchIconsAction, type IconifySearchResponse } from '@/lib/actions';
+import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from '../ui/skeleton';
+import Image from 'next/image';
+
 
 interface SidebarControlsProps {
   brandName: string;
   onBrandNameChange: (name: string) => void;
   font: string;
   onFontChange: (font: string) => void;
-  onIconSelect: (icon: { name: string, icon: string }) => void;
+  onIconSelect: (url: string) => void;
   onDownload: (format: 'PNG' | 'JPG' | 'SVG') => void;
   canvasOrientation: CanvasOrientation;
   onCanvasOrientationChange: (orientation: CanvasOrientation) => void;
@@ -35,9 +39,38 @@ export function SidebarControls({
   canvasOrientation,
   onCanvasOrientationChange
 }: SidebarControlsProps) {
-  const [iconSearch, setIconSearch] = useState('');
-  
-  const filteredIcons = icons.filter(icon => icon.name.toLowerCase().includes(iconSearch.toLowerCase()));
+  const [iconSearch, setIconSearch] = useState('rocket');
+  const [isSearching, startSearchTransition] = useTransition();
+  const [searchResults, setSearchResults] = useState<IconifySearchResponse | null>(null);
+  const { toast } = useToast();
+
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!iconSearch) {
+        setSearchResults(null);
+        return;
+    };
+    startSearchTransition(async () => {
+        try {
+            const results = await searchIconsAction(iconSearch);
+            setSearchResults(results);
+        } catch (error) {
+            toast({
+                title: 'Error searching for icons',
+                description: 'Could not fetch icons from Iconfinder. Please try again later.',
+                variant: 'destructive'
+            })
+        }
+    })
+  }
+
+  React.useEffect(() => {
+    // initial search
+    startSearchTransition(async () => {
+        const results = await searchIconsAction(iconSearch);
+        setSearchResults(results);
+    });
+  }, []);
 
   return (
     <>
@@ -83,27 +116,41 @@ export function SidebarControls({
             <AccordionItem value="item-2">
               <AccordionTrigger>Icon</AccordionTrigger>
               <AccordionContent>
-                <Input
-                  placeholder="Search icons..."
-                  value={iconSearch}
-                  onChange={(e) => setIconSearch(e.target.value)}
-                  className="mb-2"
-                />
+                <form onSubmit={handleSearch} className="flex gap-2 mb-2">
+                    <Input
+                    placeholder="Search icons..."
+                    value={iconSearch}
+                    onChange={(e) => setIconSearch(e.target.value)}
+                    />
+                    <Button type="submit" disabled={isSearching}>
+                        {isSearching ? <Loader className="animate-spin" /> : <LucideIcons.Search />}
+                    </Button>
+                </form>
                 <ScrollArea className="h-48">
                   <div className="grid grid-cols-4 gap-2 pr-4">
-                    {filteredIcons.map((icon) => {
-                      const IconComponent = LucideIcons[icon.icon as keyof typeof LucideIcons];
-                      return (
-                        <Button
-                          key={icon.name}
-                          variant="ghost"
-                          className="h-16 flex items-center justify-center flex-col gap-1 border border-transparent hover:border-primary"
-                          onClick={() => onIconSelect(icon)}
-                        >
-                          {IconComponent && <IconComponent className="w-8 h-8" />}
-                        </Button>
-                      );
-                    })}
+                    {isSearching ? (
+                        [...Array(12)].map((_, i) => <Skeleton key={i} className="h-16 w-full" />)
+                    ) : searchResults && searchResults.icons.length > 0 ? (
+                        searchResults.icons.map((icon) => {
+                            const svgFormat = icon.vector_sizes[0]?.formats.find(f => f.format === 'svg');
+                            if (!svgFormat) return null;
+                            const rasterPreview = icon.raster_sizes.find(r => r.size === 64)?.formats[0]?.preview_url
+                            return (
+                                <Button
+                                key={icon.icon_id}
+                                variant="ghost"
+                                className="h-16 flex items-center justify-center p-2 border border-transparent hover:border-primary"
+                                onClick={() => onIconSelect(svgFormat.download_url)}
+                                >
+                                {rasterPreview ? (
+                                    <Image src={rasterPreview} alt="" width={48} height={48} className="w-12 h-12" />
+                                ): <Skeleton className="h-12 w-12" />}
+                                </Button>
+                            );
+                        })
+                    ) : (
+                        <p className="col-span-4 text-center text-sm text-muted-foreground">No icons found.</p>
+                    )}
                   </div>
                 </ScrollArea>
               </AccordionContent>
@@ -141,5 +188,3 @@ export function SidebarControls({
     </>
   );
 }
-
-    

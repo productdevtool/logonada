@@ -1,3 +1,4 @@
+// This file is no longer needed for icon search and can be removed or kept for other purposes.
 import type { LucideIcon } from 'lucide-react';
 import * as lucideIcons from 'lucide-react';
 

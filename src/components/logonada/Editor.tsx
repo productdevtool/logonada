@@ -15,7 +15,7 @@ export type CanvasOrientation = 'horizontal' | 'vertical';
 
 export function Editor() {
   const [brandName, setBrandName] = useState('Logonada');
-  const [selectedIcon, setSelectedIcon] = useState<{ name: string; icon: string } | null>({ name: 'Rocket', icon: 'Rocket' });
+  const [selectedIconUrl, setSelectedIconUrl] = useState<string | null>('https://api.iconfinder.com/v4/icons/211878/downloads/svg?apiKey=X0vjEUN6KRlxbp2DoUkyHeM0VOmxY91rA6BbU5j3Xu6wDodwS0McmilLPBWDUcJ1');
   const [font, setFont] = useState(googleFonts[0].family);
   const { toast } = useToast();
   const [canvasOrientation, setCanvasOrientation] = useState<CanvasOrientation>('horizontal');
@@ -28,14 +28,14 @@ export function Editor() {
     const {width, height} = getCanvasDimensions(orientation);
     if (orientation === 'vertical') {
         return [
-            { id: 'brand-text', type: 'text', name: brandName, x: (width/2) - 100, y: 350, width: 200, height: 50, fontFamily: font, color: 'black' },
-            { id: 'logo-icon', type: 'icon', name: 'Rocket', x: (width/2) - 70, y: 200, width: 140, height: 140, color: 'black' },
+            { id: 'brand-text', type: 'text', content: brandName, x: (width/2) - 100, y: 350, width: 200, height: 50, fontFamily: font, color: 'black' },
+            { id: 'logo-icon', type: 'icon', content: selectedIconUrl!, x: (width/2) - 70, y: 200, width: 140, height: 140 },
         ];
     }
     // horizontal
     return [
-        { id: 'brand-text', type: 'text', name: brandName, x: 400, y: 175, width: 200, height: 50, fontFamily: font, color: 'black' },
-        { id: 'logo-icon', type: 'icon', name: 'Rocket', x: 200, y: 130, width: 140, height: 140, color: 'black' },
+        { id: 'brand-text', type: 'text', content: brandName, x: 400, y: 175, width: 200, height: 50, fontFamily: font, color: 'black' },
+        { id: 'logo-icon', type: 'icon', content: selectedIconUrl!, x: 200, y: 130, width: 140, height: 140 },
     ];
   };
 
@@ -44,7 +44,7 @@ export function Editor() {
 
   const handleBrandNameChange = useCallback((newName: string) => {
     setBrandName(newName);
-    setElements(prev => prev.map(el => el.id === 'brand-text' ? { ...el, name: newName } : el));
+    setElements(prev => prev.map(el => el.id === 'brand-text' ? { ...el, content: newName } : el));
   }, []);
 
   const handleFontChange = useCallback((newFont: string) => {
@@ -52,16 +52,20 @@ export function Editor() {
     setElements(prev => prev.map(el => el.id === 'brand-text' ? { ...el, fontFamily: newFont } : el));
   }, []);
 
-  const handleIconSelect = useCallback((icon: { name: string; icon: string }) => {
-    setSelectedIcon(icon);
-    setElements(prev => prev.map(el => el.id === 'logo-icon' ? { ...el, name: icon.name } : el));
+  const handleIconSelect = useCallback((iconUrl: string) => {
+    setSelectedIconUrl(iconUrl);
+    setElements(prev => prev.map(el => el.id === 'logo-icon' ? { ...el, content: iconUrl } : el));
   }, []);
 
   const handleOrientationChange = useCallback((orientation: CanvasOrientation) => {
     setCanvasOrientation(orientation);
     const newElements = getInitialElements(orientation);
-    setElements(newElements.map(el => el.id === 'brand-text' ? { ...el, name: brandName, fontFamily: font } : { ...el, name: selectedIcon?.name || 'Rocket' }));
-  }, [brandName, font, selectedIcon]);
+    setElements(newElements.map(el => {
+        if (el.id === 'brand-text') return { ...el, content: brandName, fontFamily: font };
+        if (el.id === 'logo-icon') return { ...el, content: selectedIconUrl || '' };
+        return el;
+    }));
+  }, [brandName, font, selectedIconUrl]);
 
   const updateElement = useCallback((id: string, newProps: Partial<CanvasElement>) => {
     setElements(prev => prev.map(el => el.id === id ? { ...el, ...newProps } : el));
