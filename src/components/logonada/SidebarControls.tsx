@@ -202,11 +202,11 @@ export function SidebarControls({
               <AccordionContent className="space-y-4">
                 <div className="flex items-center justify-between">
                     <Label htmlFor="icon-color">Icon Color</Label>
-                    <Input id="icon-color" type="color" value={iconColor} onChange={e => onIconColorChange(e.target.value)} className="w-24 p-1"/>
+                    <input id="icon-color" type="color" value={iconColor} onChange={e => onIconColorChange(e.target.value)} className="w-24 p-1 rounded-md border border-input"/>
                 </div>
                  <div className="flex items-center justify-between">
                     <Label htmlFor="text-color">Text Color</Label>
-                    <Input id="text-color" type="color" value={textColor} onChange={e => onTextColorChange(e.target.value)} className="w-24 p-1"/>
+                    <input id="text-color" type="color" value={textColor} onChange={e => onTextColorChange(e.target.value)} className="w-24 p-1 rounded-md border border-input"/>
                 </div>
               </AccordionContent>
             </AccordionItem>

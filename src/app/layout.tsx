@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 function getGoogleFontUrl() {
   const familyParams = googleFonts.map(font => {
     const fontName = font.family.split(',')[0].replace(/'/g, '').replace(/\s/g, '+');
-    const weights = font.weights.join(',');
+    const weights = font.weights.join(';');
     return `family=${fontName}:wght@${weights}`;
   }).join('&');
   return `https://fonts.googleapis.com/css2?${familyParams}&display=swap`;
