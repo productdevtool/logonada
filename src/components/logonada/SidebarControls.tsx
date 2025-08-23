@@ -49,7 +49,7 @@ export function SidebarControls({
       </SidebarHeader>
       <ScrollArea className="flex-grow">
         <SidebarContent>
-          <Accordion type="multiple" defaultValue={['item-1', 'item-2', 'item-3', 'item-5']} className="w-full px-2">
+          <Accordion type="multiple" defaultValue={['item-1', 'item-2', 'item-3', 'item-5']} className="w-full px-5">
             <AccordionItem value="item-5">
                 <AccordionTrigger>Canvas</AccordionTrigger>
                 <AccordionContent>
@@ -141,3 +141,5 @@ export function SidebarControls({
     </>
   );
 }
+
+    
