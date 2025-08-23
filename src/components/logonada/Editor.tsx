@@ -13,9 +13,13 @@ export type CanvasElement = CanvasElementType;
 
 export type CanvasOrientation = 'horizontal' | 'vertical';
 
+const placeholderSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>`;
+const placeholderSvgDataUrl = `data:image/svg+xml;base64,${btoa(placeholderSvg)}`;
+
+
 export function Editor() {
   const [brandName, setBrandName] = useState('Logonada');
-  const [selectedIconUrl, setSelectedIconUrl] = useState<string>('https://api.iconfinder.com/v4/icons/211878/downloads/svg?apiKey=X0vjEUN6KRlxbp2DoUkyHeM0VOmxY91rA6BbU5j3Xu6wDodwS0McmilLPBWDUcJ1');
+  const [selectedIconUrl, setSelectedIconUrl] = useState<string>(placeholderSvgDataUrl);
   const [font, setFont] = useState(googleFonts[0].family);
   const { toast } = useToast();
   const [canvasOrientation, setCanvasOrientation] = useState<CanvasOrientation>('horizontal');
