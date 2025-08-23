@@ -1,4 +1,4 @@
-import { Editor } from '@/components/logo-forge/Editor';
+import { Editor } from '@/components/logonada/Editor';
 
 export default function Home() {
   return (

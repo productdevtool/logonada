@@ -6,7 +6,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
-  title: 'LogoForge',
+  title: 'Logonada',
   description: 'Create your custom brand identity with an intuitive logo maker.',
 };
 
