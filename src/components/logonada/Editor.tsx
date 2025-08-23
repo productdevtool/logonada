@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useCallback } from 'react';
@@ -122,6 +123,10 @@ export function Editor() {
 
             const img = new Image();
             img.onload = () => {
+                if (format === 'JPG' && canvasBackgroundColor === 'transparent') {
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
                 ctx.drawImage(img, 0, 0);
                 const mimeType = format === 'JPG' ? 'image/jpeg' : 'image/png';
                 const quality = format === 'JPG' ? 0.9 : 1.0;
