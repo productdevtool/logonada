@@ -6,8 +6,8 @@ import { SidebarControls } from './SidebarControls';
 import { Canvas } from './Canvas';
 import { useToast } from '@/hooks/use-toast';
 import { googleFonts } from '@/lib/fonts';
-import { generateSvgAction } from '@/lib/actions';
-import type { CanvasElement as CanvasElementType } from '@/ai/flows/generate-svg-schemas';
+import { renderToSvgString } from '@/lib/svg-renderer';
+import type { CanvasElement as CanvasElementType } from '@/lib/svg-renderer';
 
 export type CanvasElement = CanvasElementType;
 
@@ -59,8 +59,9 @@ export function Editor() {
 
   const handleOrientationChange = useCallback((orientation: CanvasOrientation) => {
     setCanvasOrientation(orientation);
-    setElements(getInitialElements(orientation));
-  }, [brandName, font]);
+    const newElements = getInitialElements(orientation);
+    setElements(newElements.map(el => el.id === 'brand-text' ? { ...el, name: brandName, fontFamily: font } : { ...el, name: selectedIcon?.name || 'Rocket' }));
+  }, [brandName, font, selectedIcon]);
 
   const updateElement = useCallback((id: string, newProps: Partial<CanvasElement>) => {
     setElements(prev => prev.map(el => el.id === id ? { ...el, ...newProps } : el));
@@ -71,9 +72,10 @@ export function Editor() {
         const { width, height } = getCanvasDimensions(canvasOrientation);
         try {
             toast({ title: 'Generating SVG...', description: 'Your download will begin shortly.' });
-            const result = await generateSvgAction({ elements, canvasWidth: width, canvasHeight: height });
             
-            const svgBlob = new Blob([result.svgString], { type: 'image/svg+xml' });
+            const svgString = await renderToSvgString({ elements, canvasWidth: width, canvasHeight: height });
+            
+            const svgBlob = new Blob([svgString], { type: 'image/svg+xml' });
             const svgUrl = URL.createObjectURL(svgBlob);
             const downloadLink = document.createElement('a');
             downloadLink.href = svgUrl;
