@@ -110,7 +110,7 @@ export function Editor() {
             triggerDownload(svgUrl, `${filename}.svg`);
             URL.revokeObjectURL(svgUrl);
         } else if (format === 'JPG' || format === 'PNG') {
-            const scaleFactor = format === 'JPG' ? 3 : 1;
+            const scaleFactor = 3;
             const scaledWidth = width * scaleFactor;
             const scaledHeight = height * scaleFactor;
             
