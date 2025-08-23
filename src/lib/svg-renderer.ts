@@ -22,9 +22,10 @@ export interface RenderSvgInput {
   elements: CanvasElement[];
   canvasWidth: number;
   canvasHeight: number;
+  backgroundColor?: string;
 }
 
-export async function renderToSvgString({ elements, canvasWidth, canvasHeight }: RenderSvgInput): Promise<string> {
+export async function renderToSvgString({ elements, canvasWidth, canvasHeight, backgroundColor }: RenderSvgInput): Promise<string> {
   const uniqueFonts = elements
     .filter(el => el.type === 'text' && el.fontFamily)
     .reduce((acc, el) => {
@@ -49,6 +50,10 @@ export async function renderToSvgString({ elements, canvasWidth, canvasHeight }:
     : '';
 
   const fontImport = googleFontUrl ? `@import url('${googleFontUrl}');` : '';
+
+  const backgroundRect = backgroundColor && backgroundColor !== 'transparent'
+    ? `<rect width="100%" height="100%" fill="${backgroundColor}" />`
+    : '';
 
   const elementSvgs = await Promise.all(elements.map(async (el) => {
     if (el.type === 'text') {
@@ -83,6 +88,7 @@ export async function renderToSvgString({ elements, canvasWidth, canvasHeight }:
           ]]>
         </style>
       </defs>
+      ${backgroundRect}
       ${elementSvgs.join('\n')}
     </svg>
   `;

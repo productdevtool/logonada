@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { googleFonts, type GoogleFont } from '@/lib/fonts';
 import { renderToSvgString } from '@/lib/svg-renderer';
 import type { CanvasElement as CanvasElementType } from '@/lib/svg-renderer';
+import { Canvg } from 'canvg';
 
 export type CanvasElement = Omit<CanvasElementType, 'fontWeight'> & {
   fontWeight?: string;
@@ -15,7 +16,7 @@ export type CanvasElement = Omit<CanvasElementType, 'fontWeight'> & {
 
 export type CanvasOrientation = 'horizontal' | 'vertical';
 
-const placeholderSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+const placeholderSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
 const placeholderSvgDataUrl = `data:image/svg+xml;base64,${btoa(placeholderSvg)}`;
 
 
@@ -86,37 +87,52 @@ export function Editor() {
     setElements(prev => prev.map(el => el.id === id ? { ...el, ...newProps } : el));
   }, []);
 
+  const triggerDownload = (href: string, filename: string) => {
+    const downloadLink = document.createElement('a');
+    downloadLink.href = href;
+    downloadLink.download = filename;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+  }
+
   const handleDownload = async (format: 'PNG' | 'JPG' | 'SVG') => {
-    if (format === 'SVG') {
-        const { width, height } = getCanvasDimensions(canvasOrientation);
-        try {
-            toast({ title: 'Generating SVG...', description: 'Your download will begin shortly.' });
-            
-            const svgString = await renderToSvgString({ elements, canvasWidth: width, canvasHeight: height });
-            
+    const { width, height } = getCanvasDimensions(canvasOrientation);
+    const filename = `${brandName.toLowerCase().replace(/\s+/g, '-')}-logo`;
+    
+    toast({ title: `Generating ${format}...`, description: 'Your download will begin shortly.' });
+
+    try {
+        const svgString = await renderToSvgString({ elements, canvasWidth: width, canvasHeight: height, backgroundColor: canvasBackgroundColor });
+
+        if (format === 'SVG') {
             const svgBlob = new Blob([svgString], { type: 'image/svg+xml' });
             const svgUrl = URL.createObjectURL(svgBlob);
-            const downloadLink = document.createElement('a');
-            downloadLink.href = svgUrl;
-            downloadLink.download = `${brandName.toLowerCase().replace(/\s+/g, '-')}-logo.svg`;
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
+            triggerDownload(svgUrl, `${filename}.svg`);
             URL.revokeObjectURL(svgUrl);
+        } else if (format === 'JPG' || format === 'PNG') {
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                throw new Error('Could not get canvas context');
+            }
 
-            toast({ title: 'SVG Download Started!', description: 'Check your downloads folder.' });
+            const v = await Canvg.from(ctx, svgString);
+            await v.render();
+            
+            const mimeType = format === 'JPG' ? 'image/jpeg' : 'image/png';
+            const dataUrl = canvas.toDataURL(mimeType, format === 'JPG' ? 0.9 : undefined);
 
-        } catch (error) {
-            console.error('SVG Generation Error:', error);
-            toast({ title: 'SVG Generation Failed', description: 'There was an error generating your SVG.', variant: 'destructive' });
+            triggerDownload(dataUrl, `${filename}.${format.toLowerCase()}`);
         }
+        
+        toast({ title: `${format} Download Started!`, description: 'Check your downloads folder.' });
 
-    } else {
-        toast({
-            title: "Format Not Supported Yet",
-            description: `We're working on ${format} exports. For now, please use SVG.`,
-            variant: "destructive"
-        });
+    } catch (error) {
+        console.error(`${format} Generation Error:`, error);
+        toast({ title: `${format} Generation Failed`, description: `There was an error generating your ${format}.`, variant: 'destructive' });
     }
   }
 
