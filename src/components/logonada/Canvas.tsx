@@ -91,7 +91,7 @@ export function Canvas({ elements, selectedElementId, onSelectElement, onUpdateE
                     onUpdate={(newProps) => onUpdateElement(el.id, newProps)}
                     >
                     {el.type === 'icon' ? (
-                        <IconRenderer url={el.content} />
+                        <IconRenderer url={el.content} color={el.color} />
                     ) : null}
 
                     {el.type === 'text' && (

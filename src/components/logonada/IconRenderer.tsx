@@ -6,9 +6,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 interface IconRendererProps {
   url: string;
+  color?: string;
 }
 
-export function IconRenderer({ url }: IconRendererProps) {
+export function IconRenderer({ url, color }: IconRendererProps) {
   const [svgContent, setSvgContent] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,14 +52,20 @@ export function IconRenderer({ url }: IconRendererProps) {
     );
   }
 
+  // Use a mask to apply color. This is more robust than trying to manipulate the SVG string.
   const dataUrl = `data:image/svg+xml;base64,${btoa(svgContent)}`;
 
   return (
-    <img
-      src={dataUrl}
-      alt="Selected icon"
-      className="w-full h-full"
-      style={{ pointerEvents: 'none' }}
-    />
+    <div
+        className="w-full h-full"
+        style={{
+            backgroundColor: color || 'currentColor',
+            maskImage: `url(${dataUrl})`,
+            maskSize: 'contain',
+            maskRepeat: 'no-repeat',
+            maskPosition: 'center',
+            pointerEvents: 'none'
+        }}
+    ></div>
   );
 }

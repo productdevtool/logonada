@@ -16,6 +16,7 @@ import { searchIconsAction, type IconifySearchResponse } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '../ui/skeleton';
 import Image from 'next/image';
+import { Label } from '@/components/ui/label';
 
 
 interface SidebarControlsProps {
@@ -27,6 +28,10 @@ interface SidebarControlsProps {
   onDownload: (format: 'PNG' | 'JPG' | 'SVG') => void;
   canvasOrientation: CanvasOrientation;
   onCanvasOrientationChange: (orientation: CanvasOrientation) => void;
+  iconColor: string;
+  onIconColorChange: (color: string) => void;
+  textColor: string;
+  onTextColorChange: (color: string) => void;
 }
 
 export function SidebarControls({
@@ -37,7 +42,11 @@ export function SidebarControls({
   onIconSelect,
   onDownload,
   canvasOrientation,
-  onCanvasOrientationChange
+  onCanvasOrientationChange,
+  iconColor,
+  onIconColorChange,
+  textColor,
+  onTextColorChange,
 }: SidebarControlsProps) {
   const [iconSearch, setIconSearch] = useState('rocket');
   const [isSearching, startSearchTransition] = useTransition();
@@ -82,7 +91,7 @@ export function SidebarControls({
       </SidebarHeader>
       <ScrollArea className="flex-grow">
         <SidebarContent>
-          <Accordion type="multiple" defaultValue={['item-1', 'item-2', 'item-3', 'item-5']} className="w-full px-5">
+          <Accordion type="multiple" defaultValue={['item-1', 'item-2', 'item-3', 'item-4', 'item-5']} className="w-full px-5">
             <AccordionItem value="item-5">
                 <AccordionTrigger>Canvas</AccordionTrigger>
                 <AccordionContent>
@@ -143,7 +152,7 @@ export function SidebarControls({
                                 onClick={() => onIconSelect(svgFormat.download_url)}
                                 >
                                 {rasterPreview ? (
-                                    <Image src={rasterPreview} alt="" width={48} height={48} className="w-12 h-12" style={{height: 'auto'}} />
+                                    <Image src={rasterPreview} alt="" width={48} height={48} className="w-12 h-12" style={{height: 'auto', width: 'auto'}} />
                                 ): <Skeleton className="h-12 w-12" />}
                                 </Button>
                             );
@@ -170,6 +179,19 @@ export function SidebarControls({
                     ))}
                   </SelectContent>
                 </Select>
+              </AccordionContent>
+            </AccordionItem>
+             <AccordionItem value="item-4">
+              <AccordionTrigger>Colors</AccordionTrigger>
+              <AccordionContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <Label htmlFor="icon-color">Icon Color</Label>
+                    <Input id="icon-color" type="color" value={iconColor} onChange={e => onIconColorChange(e.target.value)} className="w-24 p-1"/>
+                </div>
+                 <div className="flex items-center justify-between">
+                    <Label htmlFor="text-color">Text Color</Label>
+                    <Input id="text-color" type="color" value={textColor} onChange={e => onTextColorChange(e.target.value)} className="w-24 p-1"/>
+                </div>
               </AccordionContent>
             </AccordionItem>
           </Accordion>

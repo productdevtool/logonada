@@ -33,14 +33,14 @@ export function Editor() {
     const iconContent = iconUrl;
     if (orientation === 'vertical') {
         return [
-            { id: 'brand-text', type: 'text', content: currentBrandName, x: (width/2) - 100, y: 350, width: 200, height: 50, fontFamily: currentFont, color: 'black' },
-            { id: 'logo-icon', type: 'icon', content: iconContent, x: (width/2) - 70, y: 200, width: 140, height: 140 },
+            { id: 'brand-text', type: 'text', content: currentBrandName, x: (width/2) - 100, y: 350, width: 200, height: 50, fontFamily: currentFont, color: '#000000' },
+            { id: 'logo-icon', type: 'icon', content: iconContent, x: (width/2) - 70, y: 200, width: 140, height: 140, color: '#000000' },
         ];
     }
     // horizontal
     return [
-        { id: 'brand-text', type: 'text', content: currentBrandName, x: 400, y: 175, width: 200, height: 50, fontFamily: currentFont, color: 'black' },
-        { id: 'logo-icon', type: 'icon', content: iconContent, x: 200, y: 130, width: 140, height: 140 },
+        { id: 'brand-text', type: 'text', content: currentBrandName, x: 400, y: 175, width: 200, height: 50, fontFamily: currentFont, color: '#000000' },
+        { id: 'logo-icon', type: 'icon', content: iconContent, x: 200, y: 130, width: 140, height: 140, color: '#000000' },
     ];
   };
 
@@ -105,6 +105,13 @@ export function Editor() {
     }
   }
 
+  const handleColorChange = (id: string, color: string) => {
+    updateElement(id, { color });
+  };
+  
+  const iconElement = elements.find(el => el.type === 'icon');
+  const textElement = elements.find(el => el.type === 'text');
+
   return (
     <SidebarProvider>
       <Sidebar className="z-20 w-[340px] p-[20px]">
@@ -117,6 +124,10 @@ export function Editor() {
           onDownload={handleDownload}
           canvasOrientation={canvasOrientation}
           onCanvasOrientationChange={handleOrientationChange}
+          iconColor={iconElement?.color || '#000000'}
+          onIconColorChange={(color) => handleColorChange('logo-icon', color)}
+          textColor={textElement?.color || '#000000'}
+          onTextColorChange={(color) => handleColorChange('brand-text', color)}
         />
       </Sidebar>
       <SidebarInset>
