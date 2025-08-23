@@ -156,7 +156,7 @@ export function SidebarControls({
                                 onClick={() => onIconSelect(svgFormat.download_url)}
                                 >
                                 {rasterPreview ? (
-                                    <Image src={rasterPreview} alt="" width={48} height={48} className="w-12 h-12" style={{height: 'auto', width: 'auto'}} />
+                                    <Image src={rasterPreview} alt="" width={48} height={48} style={{height: 'auto', width: 'auto'}} />
                                 ): <Skeleton className="h-12 w-12" />}
                                 </Button>
                             );
@@ -213,13 +213,13 @@ export function SidebarControls({
           </Accordion>
         </SidebarContent>
       </ScrollArea>
-      <SidebarFooter>
-        <SidebarGroup>
+      <SidebarFooter className="bg-muted/50 p-4">
+        <SidebarGroup className="p-0">
             <SidebarGroupLabel>Export</SidebarGroupLabel>
             <div className="flex gap-2">
-                <Button variant="outline" className="flex-1" onClick={() => onDownload('PNG')}>PNG</Button>
-                <Button variant="outline" className="flex-1" onClick={() => onDownload('JPG')}>JPG</Button>
-                <Button variant="outline" className="flex-1" onClick={() => onDownload('SVG')}>SVG</Button>
+                <Button variant="outline" className="flex-1 bg-background" onClick={() => onDownload('PNG')}>PNG</Button>
+                <Button variant="outline" className="flex-1 bg-background" onClick={() => onDownload('JPG')}>JPG</Button>
+                <Button variant="outline" className="flex-1 bg-background" onClick={() => onDownload('SVG')}>SVG</Button>
             </div>
         </SidebarGroup>
       </SidebarFooter>
