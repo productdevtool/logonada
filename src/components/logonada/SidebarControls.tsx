@@ -143,7 +143,7 @@ export function SidebarControls({
                                 onClick={() => onIconSelect(svgFormat.download_url)}
                                 >
                                 {rasterPreview ? (
-                                    <Image src={rasterPreview} alt="" width={48} height={48} className="w-12 h-12" />
+                                    <Image src={rasterPreview} alt="" width={48} height={48} className="w-12 h-12" style={{height: 'auto'}} />
                                 ): <Skeleton className="h-12 w-12" />}
                                 </Button>
                             );
