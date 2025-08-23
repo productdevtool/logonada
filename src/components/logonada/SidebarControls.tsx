@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react';
-import { SidebarHeader, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
+import { SidebarHeader, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel } from '@/components/ui/sidebar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -12,6 +12,9 @@ import { googleFonts } from '@/lib/fonts';
 import * as LucideIcons from 'lucide-react';
 import { LayoutSuggestions } from './LayoutSuggestions';
 import type { GenerateLayoutSuggestionsOutput } from '@/ai/flows/generate-layout-suggestions';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { RectangleHorizontal, RectangleVertical } from 'lucide-react';
+import type { CanvasOrientation } from './Editor';
 
 interface SidebarControlsProps {
   brandName: string;
@@ -24,6 +27,8 @@ interface SidebarControlsProps {
   layoutSuggestions: GenerateLayoutSuggestionsOutput['suggestions'];
   applyLayoutSuggestion: (suggestion: GenerateLayoutSuggestionsOutput['suggestions'][0]) => void;
   onDownload: (format: 'PNG' | 'JPG' | 'SVG') => void;
+  canvasOrientation: CanvasOrientation;
+  onCanvasOrientationChange: (orientation: CanvasOrientation) => void;
 }
 
 export function SidebarControls({
@@ -37,6 +42,8 @@ export function SidebarControls({
   layoutSuggestions,
   applyLayoutSuggestion,
   onDownload,
+  canvasOrientation,
+  onCanvasOrientationChange
 }: SidebarControlsProps) {
   const [iconSearch, setIconSearch] = useState('');
   
@@ -52,7 +59,27 @@ export function SidebarControls({
       </SidebarHeader>
       <ScrollArea className="flex-grow">
         <SidebarContent>
-          <Accordion type="multiple" defaultValue={['item-1', 'item-2', 'item-3', 'item-4']} className="w-full px-2">
+          <Accordion type="multiple" defaultValue={['item-1', 'item-2', 'item-3', 'item-4', 'item-5']} className="w-full px-2">
+            <AccordionItem value="item-5">
+                <AccordionTrigger>Canvas</AccordionTrigger>
+                <AccordionContent>
+                    <ToggleGroup 
+                        type="single" 
+                        className="w-full"
+                        value={canvasOrientation}
+                        onValueChange={(value: CanvasOrientation) => value && onCanvasOrientationChange(value)}
+                    >
+                        <ToggleGroupItem value="horizontal" aria-label="Horizontal" className="flex-1">
+                            <RectangleHorizontal className="h-4 w-4 mr-2" />
+                            Horizontal
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="vertical" aria-label="Vertical" className="flex-1">
+                            <RectangleVertical className="h-4 w-4 mr-2" />
+                            Vertical
+                        </ToggleGroupItem>
+                    </ToggleGroup>
+                </AccordionContent>
+            </AccordionItem>
             <AccordionItem value="item-1">
               <AccordionTrigger>Brand Name</AccordionTrigger>
               <AccordionContent>

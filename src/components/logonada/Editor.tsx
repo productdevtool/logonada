@@ -21,6 +21,8 @@ export interface CanvasElement {
   color?: string;
 }
 
+export type CanvasOrientation = 'horizontal' | 'vertical';
+
 export function Editor() {
   const [brandName, setBrandName] = useState('Logonada');
   const [selectedIcon, setSelectedIcon] = useState<{ name: string; icon: string } | null>({ name: 'Rocket', icon: 'Rocket' });
@@ -28,12 +30,23 @@ export function Editor() {
   const [layoutSuggestions, setLayoutSuggestions] = useState<GenerateLayoutSuggestionsOutput['suggestions']>([]);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const { toast } = useToast();
+  const [canvasOrientation, setCanvasOrientation] = useState<CanvasOrientation>('horizontal');
 
-  const [elements, setElements] = useState<CanvasElement[]>([
-    { id: 'brand-text', type: 'text', name: brandName, x: 200, y: 280, width: 200, height: 50, fontFamily: font },
-    { id: 'logo-icon', type: 'icon', name: 'Rocket', x: 230, y: 150, width: 140, height: 140 },
-  ]);
+  const getInitialElements = (orientation: CanvasOrientation): CanvasElement[] => {
+    if (orientation === 'vertical') {
+        return [
+            { id: 'brand-text', type: 'text', name: brandName, x: 100, y: 350, width: 200, height: 50, fontFamily: font },
+            { id: 'logo-icon', type: 'icon', name: 'Rocket', x: 130, y: 200, width: 140, height: 140 },
+        ];
+    }
+    // horizontal
+    return [
+        { id: 'brand-text', type: 'text', name: brandName, x: 350, y: 175, width: 200, height: 50, fontFamily: font },
+        { id: 'logo-icon', type: 'icon', name: 'Rocket', x: 150, y: 130, width: 140, height: 140 },
+    ];
+  };
 
+  const [elements, setElements] = useState<CanvasElement[]>(getInitialElements(canvasOrientation));
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
 
   const handleBrandNameChange = useCallback((newName: string) => {
@@ -50,6 +63,11 @@ export function Editor() {
     setSelectedIcon(icon);
     setElements(prev => prev.map(el => el.id === 'logo-icon' ? { ...el, name: icon.name } : el));
   }, []);
+
+  const handleOrientationChange = useCallback((orientation: CanvasOrientation) => {
+    setCanvasOrientation(orientation);
+    setElements(getInitialElements(orientation));
+  }, [brandName, font]);
 
   const updateElement = useCallback((id: string, newProps: Partial<CanvasElement>) => {
     setElements(prev => prev.map(el => el.id === id ? { ...el, ...newProps } : el));
@@ -84,13 +102,17 @@ export function Editor() {
 
     let newIconPos = { ...iconEl };
     let newTextPos = { ...textEl };
+    
+    const canvasWidth = canvasOrientation === 'horizontal' ? 800 : 400;
+    const canvasHeight = canvasOrientation === 'horizontal' ? 400 : 600;
 
     if (suggestion.layoutType === 'vertical') {
-        newIconPos = { ...newIconPos, x: 300 - iconSize / 2, y: 200 - iconSize / 2, width: iconSize, height: iconSize };
-        newTextPos = { ...newTextPos, x: 300 - textSize / 2, y: 200 + iconSize/2 + 20, width: textSize, height: textSize/4 };
+        newIconPos = { ...newIconPos, x: canvasWidth/2 - iconSize / 2, y: canvasHeight/2 - iconSize, width: iconSize, height: iconSize };
+        newTextPos = { ...newTextPos, x: canvasWidth/2 - textSize / 2, y: canvasHeight/2 + 20, width: textSize, height: textSize/4 };
     } else { // horizontal
-        newIconPos = { ...newIconPos, x: 300 - (iconSize + textSize + 20) / 2, y: 250 - iconSize/2, width: iconSize, height: iconSize };
-        newTextPos = { ...newTextPos, x: newIconPos.x + iconSize + 20, y: 250-textSize/4, width: textSize, height: textSize/2};
+        const totalWidth = iconSize + textSize + 20;
+        newIconPos = { ...newIconPos, x: canvasWidth/2 - totalWidth / 2, y: canvasHeight/2 - iconSize/2, width: iconSize, height: iconSize };
+        newTextPos = { ...newTextPos, x: newIconPos.x + iconSize + 20, y: canvasHeight/2 - textSize/4, width: textSize, height: textSize/2};
     }
 
     const newFontFamily = googleFonts.find(f => f.name === suggestion.font)?.family || font;
@@ -125,6 +147,8 @@ export function Editor() {
           isLoadingSuggestions={isLoadingSuggestions}
           applyLayoutSuggestion={applyLayoutSuggestion}
           onDownload={handleDownload}
+          canvasOrientation={canvasOrientation}
+          onCanvasOrientationChange={handleOrientationChange}
         />
       </Sidebar>
       <SidebarInset>
@@ -133,6 +157,7 @@ export function Editor() {
           selectedElementId={selectedElementId}
           onSelectElement={setSelectedElementId}
           onUpdateElement={updateElement}
+          orientation={canvasOrientation}
         />
       </SidebarInset>
     </SidebarProvider>

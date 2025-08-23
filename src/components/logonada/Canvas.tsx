@@ -1,19 +1,21 @@
 'use client';
 
 import React, { useRef } from 'react';
-import type { CanvasElement } from './Editor';
+import type { CanvasElement, CanvasOrientation } from './Editor';
 import { DraggableResizable } from './DraggableResizable';
 import * as LucideIcons from 'lucide-react';
 import { icons } from '@/lib/icons';
+import { cn } from '@/lib/utils';
 
 interface CanvasProps {
   elements: CanvasElement[];
   selectedElementId: string | null;
   onSelectElement: (id: string | null) => void;
   onUpdateElement: (id: string, newProps: Partial<CanvasElement>) => void;
+  orientation: CanvasOrientation;
 }
 
-export function Canvas({ elements, selectedElementId, onSelectElement, onUpdateElement }: CanvasProps) {
+export function Canvas({ elements, selectedElementId, onSelectElement, onUpdateElement, orientation }: CanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -22,13 +24,20 @@ export function Canvas({ elements, selectedElementId, onSelectElement, onUpdateE
     }
   };
 
+  const canvasSize = {
+    horizontal: { width: '800px', height: '400px' },
+    vertical: { width: '400px', height: '600px' }
+  }
+
   return (
     <div className="flex-grow h-full flex items-center justify-center bg-gray-200/50 dark:bg-gray-800/20 p-8">
       <div
         ref={canvasRef}
-        className="relative w-[600px] h-[600px] bg-white dark:bg-gray-900 shadow-lg rounded-lg overflow-hidden"
+        className={cn(
+          "relative bg-white dark:bg-gray-900 shadow-lg rounded-lg overflow-hidden transition-all duration-300"
+        )}
+        style={{ ...canvasSize[orientation], cursor: 'auto' }}
         onClick={handleCanvasClick}
-        style={{ cursor: 'auto' }}
       >
         {elements.map((el) => {
           const IconComponent = el.type === 'icon' 
