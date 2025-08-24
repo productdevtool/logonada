@@ -37,6 +37,17 @@ async function encodeResourceAsBase64(url: string): Promise<string> {
   return `data:${contentType};base64,${base64}`;
 }
 
+// Helper function to convert a hex color to its RGB components
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? {
+        r: parseInt(result[1], 16) / 255,
+        g: parseInt(result[2], 16) / 255,
+        b: parseInt(result[3], 16) / 255,
+      }
+    : { r: 0, g: 0, b: 0 }; // Default to black if invalid
+}
 
 export async function renderToSvgString({ elements, canvasWidth, canvasHeight, backgroundColor }: RenderSvgInput): Promise<string> {
   const uniqueFonts = elements
@@ -91,18 +102,32 @@ export async function renderToSvgString({ elements, canvasWidth, canvasHeight, b
       return `<text x="${el.x + el.width / 2}" y="${el.y + el.height / 2}" font-family="${el.fontFamily}" font-weight="${el.fontWeight || '400'}" font-size="${el.height}" fill="${el.color || 'black'}" text-anchor="middle" dominant-baseline="central">${el.content}</text>`;
     }
     if (el.type === 'icon') {
-        // Let's check if the content is already a data URL
-        if (el.content.startsWith('data:image/svg+xml;base64,')) {
-          return `<image href="${el.content}" x="${el.x}" y="${el.y}" width="${el.width}" height="${el.height}" />`;
-        }
-
-        // Otherwise, fetch and encode it.
+        const iconId = `icon-${el.id}`;
         const iconSvgContent = await getIconSvgAction(el.content);
-        const coloredSvg = iconSvgContent.replace('<svg ', `<svg fill="${el.color || 'black'}" `);
-        const base64Icon = Buffer.from(coloredSvg).toString('base64');
-        const dataUrl = `data:image/svg+xml;base64,${base64Icon}`;
-
-        return `<image href="${dataUrl}" x="${el.x}" y="${el.y}" width="${el.width}" height="${el.height}" />`;
+        const dataUrl = `data:image/svg+xml;base64,${Buffer.from(iconSvgContent).toString('base64')}`;
+        
+        const { r, g, b } = hexToRgb(el.color || '#000000');
+        
+        return `
+            <defs>
+                <filter id="${iconId}-color-filter" color-interpolation-filters="sRGB">
+                    <feColorMatrix
+                        type="matrix"
+                        values="0 0 0 0 ${r}
+                                0 0 0 0 ${g}
+                                0 0 0 0 ${b}
+                                0 0 0 1 0"
+                    />
+                </filter>
+            </defs>
+            <image 
+                href="${dataUrl}" 
+                x="${el.x}" 
+                y="${el.y}" 
+                width="${el.width}" 
+                height="${el.height}" 
+                filter="url(#${iconId}-color-filter)" 
+            />`;
     }
     return '';
   }));
