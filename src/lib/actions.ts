@@ -46,7 +46,14 @@ export async function searchIconsAction(query: string): Promise<IconifySearchRes
     });
 
     if (!response.ok) {
-        console.error('Iconfinder API Error:', await response.text());
+        const errorText = await response.text();
+        console.error('Iconfinder API Error:', errorText);
+
+        // Don't throw for server errors, just return empty state so the app doesn't crash.
+        if (response.status >= 500) {
+            return { icons: [], total_count: 0 };
+        }
+        
         throw new Error('Failed to fetch icons from Iconfinder.');
     }
 
