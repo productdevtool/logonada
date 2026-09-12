@@ -26,6 +26,11 @@ export async function searchIconsAction(query: string): Promise<IconifySearchRes
         return { icons: [], total_count: 0 };
     }
 
+    if (!process.env.ICONFINDER_API_KEY) {
+        console.error('ICONFINDER_API_KEY is not set in environment variables.');
+        return { icons: [], total_count: 0 };
+    }
+
     const params = new URLSearchParams({
         query: query,
         count: '50',
@@ -53,11 +58,8 @@ export async function searchIconsAction(query: string): Promise<IconifySearchRes
                 query: query
             });
 
-            if (response.status >= 500) {
-                return { icons: [], total_count: 0 };
-            }
-            
-            throw new Error(`Failed to fetch icons: ${response.statusText}`);
+            // Return empty results on server error instead of crashing
+            return { icons: [], total_count: 0 };
         }
 
         const data = await response.json();
@@ -70,6 +72,10 @@ export async function searchIconsAction(query: string): Promise<IconifySearchRes
 
 export async function getIconSvgAction(url: string): Promise<string> {
     if (!url) return '';
+
+    if (!process.env.ICONFINDER_API_KEY) {
+        throw new Error('ICONFINDER_API_KEY is missing');
+    }
 
     try {
         const response = await fetch(url, {
@@ -86,7 +92,7 @@ export async function getIconSvgAction(url: string): Promise<string> {
                 url: url,
                 body: errorText
             });
-            throw new Error('Failed to fetch SVG content from Iconfinder.');
+            throw new Error(`Failed to fetch SVG: ${response.statusText}`);
         }
 
         return await response.text();

@@ -45,7 +45,6 @@ export function PostHogPageview(): JSX.Element {
     )
 }
 
-
 export function PostHogProvider({
   children,
 }: {
