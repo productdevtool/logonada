@@ -1,4 +1,3 @@
-
 'use client'
 
 import React, { useState, useTransition } from 'react';
@@ -11,7 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { googleFonts, type GoogleFont } from '@/lib/fonts';
 import * as LucideIcons from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { RectangleHorizontal, RectangleVertical, Loader } from 'lucide-react';
+import { RectangleHorizontal, RectangleVertical, Loader, Sparkles } from 'lucide-react';
 import type { CanvasOrientation } from './Editor';
 import { searchIconsAction, type IconifySearchResponse } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -19,7 +18,8 @@ import { Skeleton } from '../ui/skeleton';
 import Image from 'next/image';
 import { Label } from '@/components/ui/label';
 import { usePostHog } from 'posthog-js/react';
-
+import { LayoutSuggestions } from './LayoutSuggestions';
+import type { GenerateLayoutSuggestionsOutput } from '@/ai/flows/generate-layout-suggestions';
 
 interface SidebarControlsProps {
   brandName: string;
@@ -38,6 +38,11 @@ interface SidebarControlsProps {
   onTextColorChange: (color: string) => void;
   canvasBackgroundColor: string;
   onCanvasBackgroundColorChange: (color: string) => void;
+  // AI Suggestions props
+  suggestions: GenerateLayoutSuggestionsOutput['suggestions'];
+  isLoadingSuggestions: boolean;
+  onGenerateSuggestions: () => void;
+  onApplySuggestion: (suggestion: GenerateLayoutSuggestionsOutput['suggestions'][0]) => void;
 }
 
 export function SidebarControls({
@@ -57,6 +62,10 @@ export function SidebarControls({
   onTextColorChange,
   canvasBackgroundColor,
   onCanvasBackgroundColorChange,
+  suggestions,
+  isLoadingSuggestions,
+  onGenerateSuggestions,
+  onApplySuggestion,
 }: SidebarControlsProps) {
   const posthog = usePostHog()
   const [iconSearch, setIconSearch] = useState('rocket');
@@ -86,7 +95,6 @@ export function SidebarControls({
   }
 
   React.useEffect(() => {
-    // initial search
     startSearchTransition(async () => {
         const results = await searchIconsAction(iconSearch);
         setSearchResults(results);
@@ -104,7 +112,31 @@ export function SidebarControls({
       </SidebarHeader>
       <ScrollArea className="flex-grow">
         <SidebarContent>
-          <Accordion type="multiple" defaultValue={['item-5', 'item-1']} className="w-full px-5">
+          <Accordion type="multiple" defaultValue={['item-ai', 'item-1']} className="w-full px-5">
+            <AccordionItem value="item-ai">
+                <AccordionTrigger className="text-primary">
+                    <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4" />
+                        AI Suggestions
+                    </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                    <Button 
+                        onClick={onGenerateSuggestions} 
+                        disabled={isLoadingSuggestions || !brandName}
+                        className="w-full mb-2"
+                        variant="secondary"
+                    >
+                        {isLoadingSuggestions ? <Loader className="animate-spin mr-2 h-4 w-4" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                        Generate Layouts
+                    </Button>
+                    <LayoutSuggestions 
+                        suggestions={suggestions} 
+                        isLoading={isLoadingSuggestions} 
+                        onApply={onApplySuggestion} 
+                    />
+                </AccordionContent>
+            </AccordionItem>
             <AccordionItem value="item-5">
                 <AccordionTrigger>Canvas</AccordionTrigger>
                 <AccordionContent className="space-y-4">
@@ -152,26 +184,41 @@ export function SidebarControls({
                   <div className="grid grid-cols-4 gap-2 pr-4">
                     {isSearching ? (
                         [...Array(12)].map((_, i) => <Skeleton key={i} className="h-16 w-full" />)
-                    ) : searchResults && searchResults.icons.length > 0 ? (
+                    ) : searchResults && searchResults.icons && searchResults.icons.length > 0 ? (
                         searchResults.icons.map((icon) => {
-                            const svgFormat = icon.vector_sizes[0]?.formats.find(f => f.format === 'svg');
+                            const svgFormat = icon.vector_sizes
+                                .flatMap(vs => vs.formats)
+                                .find(f => f.format === 'svg');
+                            
                             if (!svgFormat) return null;
-                            const rasterPreview = icon.raster_sizes.find(r => r.size === 64)?.formats[0]?.preview_url
+
+                            const rasterPreview = icon.raster_sizes.find(r => r.size === 64)?.formats[0]?.preview_url || 
+                                                 icon.raster_sizes[0]?.formats[0]?.preview_url;
+                            
                             return (
                                 <Button
-                                key={icon.icon_id}
-                                variant="ghost"
-                                className="h-16 flex items-center justify-center p-2 border border-transparent hover:border-primary"
-                                onClick={() => onIconSelect(svgFormat.download_url)}
+                                    key={icon.icon_id}
+                                    variant="ghost"
+                                    className="h-16 flex items-center justify-center p-2 border border-transparent hover:border-primary"
+                                    onClick={() => onIconSelect(svgFormat.download_url)}
                                 >
-                                {rasterPreview ? (
-                                    <Image src={rasterPreview} alt="" width={48} height={48} style={{height: 'auto', width: 'auto'}} />
-                                ): <Skeleton className="h-12 w-12" />}
+                                    {rasterPreview ? (
+                                        <Image 
+                                            src={rasterPreview} 
+                                            alt="" 
+                                            width={48} 
+                                            height={48} 
+                                            className="object-contain" 
+                                            style={{height: '48px', width: '48px'}} 
+                                        />
+                                    ): <Skeleton className="h-12 w-12" />}
                                 </Button>
                             );
                         })
+                    ) : searchResults ? (
+                        <p className="col-span-4 text-center text-sm text-muted-foreground py-4">No vector icons found for &quot;{iconSearch}&quot;.</p>
                     ) : (
-                        <p className="col-span-4 text-center text-sm text-muted-foreground">No icons found.</p>
+                        <p className="col-span-4 text-center text-sm text-muted-foreground py-4">Search for an icon to start.</p>
                     )}
                   </div>
                 </ScrollArea>

@@ -26,7 +26,8 @@ export async function searchIconsAction(query: string): Promise<IconifySearchRes
         return { icons: [], total_count: 0 };
     }
 
-    if (!process.env.ICONFINDER_API_KEY) {
+    const apiKey = process.env.ICONFINDER_API_KEY;
+    if (!apiKey) {
         console.error('ICONFINDER_API_KEY is not set in environment variables.');
         return { icons: [], total_count: 0 };
     }
@@ -35,14 +36,13 @@ export async function searchIconsAction(query: string): Promise<IconifySearchRes
         query: query,
         count: '50',
         premium: '0',
-        vector: '1',
     });
 
     try {
         const response = await fetch(`https://api.iconfinder.com/v4/icons/search?${params.toString()}`, {
             headers: {
-                'Authorization': `Bearer ${process.env.ICONFINDER_API_KEY}`,
-                'accept': 'application/json'
+                'Authorization': `Bearer ${apiKey}`,
+                'Accept': 'application/json'
             },
             next: {
                 revalidate: 3600 // Cache for 1 hour
@@ -51,18 +51,21 @@ export async function searchIconsAction(query: string): Promise<IconifySearchRes
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('Iconfinder Search API Error:', {
-                status: response.status,
-                statusText: response.statusText,
-                body: errorText,
-                query: query
-            });
-
-            // Return empty results on server error instead of crashing
+            console.error('Iconfinder Search API Error:', response.status, errorText);
             return { icons: [], total_count: 0 };
         }
 
         const data = await response.json();
+        
+        // Filter icons to ensure we only return ones that have at least one SVG format for the canvas
+        if (data.icons && Array.isArray(data.icons)) {
+            data.icons = data.icons.filter((icon: any) => 
+                icon.vector_sizes && icon.vector_sizes.some((vs: any) => 
+                    vs.formats && vs.formats.some((f: any) => f.format === 'svg')
+                )
+            );
+        }
+
         return data as IconifySearchResponse;
     } catch (error) {
         console.error('Search Icons Action Exception:', error);
@@ -73,25 +76,22 @@ export async function searchIconsAction(query: string): Promise<IconifySearchRes
 export async function getIconSvgAction(url: string): Promise<string> {
     if (!url) return '';
 
-    if (!process.env.ICONFINDER_API_KEY) {
+    const apiKey = process.env.ICONFINDER_API_KEY;
+    if (!apiKey) {
         throw new Error('ICONFINDER_API_KEY is missing');
     }
 
     try {
         const response = await fetch(url, {
             headers: {
-                'Authorization': `Bearer ${process.env.ICONFINDER_API_KEY}`,
-                'accept': 'application/json'
+                'Authorization': `Bearer ${apiKey}`,
+                'Accept': 'application/json'
             }
         });
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('Iconfinder SVG Fetch Error:', {
-                status: response.status,
-                url: url,
-                body: errorText
-            });
+            console.error('Iconfinder SVG Fetch Error:', response.status, url, errorText);
             throw new Error(`Failed to fetch SVG: ${response.statusText}`);
         }
 
