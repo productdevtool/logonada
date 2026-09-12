@@ -21,7 +21,6 @@ export interface IconifySearchResponse {
     total_count: number;
 }
 
-
 export async function searchIconsAction(query: string): Promise<IconifySearchResponse> {
     if (!query) {
         return { icons: [], total_count: 0 };
