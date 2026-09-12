@@ -26,48 +26,77 @@ export async function searchIconsAction(query: string): Promise<IconifySearchRes
         return { icons: [], total_count: 0 };
     }
 
+    // Using v4 as it's the current stable version. 
+    // We use 1/0 for booleans as it's often more reliable for various API implementations.
     const params = new URLSearchParams({
         query: query,
         count: '50',
-        premium: 'false',
-        vector: 'true',
-        license: 'commercial-nonattribution',
+        premium: '0', // 0 for free icons
+        vector: '1',  // 1 for vector icons
     });
 
-    const response = await fetch(`https://api.iconfinder.com/v4/icons/search?${params.toString()}`, {
-        headers: {
-            'Authorization': `Bearer ${process.env.ICONFINDER_API_KEY}`,
-            'accept': 'application/json'
-        },
-        next: {
-            revalidate: 3600 // Cache for 1 hour
-        }
-    });
+    try {
+        const response = await fetch(`https://api.iconfinder.com/v4/icons/search?${params.toString()}`, {
+            headers: {
+                'Authorization': `Bearer ${process.env.ICONFINDER_API_KEY}`,
+                'accept': 'application/json'
+            },
+            next: {
+                revalidate: 3600 // Cache for 1 hour
+            }
+        });
 
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Iconfinder API Error:', errorText);
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Iconfinder Search API Error:', {
+                status: response.status,
+                statusText: response.statusText,
+                body: errorText,
+                query: query
+            });
 
-        // Don't throw for server errors, just return empty state so the app doesn't crash.
-        if (response.status >= 500) {
-            return { icons: [], total_count: 0 };
+            // Return empty state for server errors to prevent app crash
+            if (response.status >= 500) {
+                return { icons: [], total_count: 0 };
+            }
+            
+            throw new Error(`Failed to fetch icons: ${response.statusText}`);
         }
-        
-        throw new Error('Failed to fetch icons from Iconfinder.');
+
+        const data = await response.json();
+        return data as IconifySearchResponse;
+    } catch (error) {
+        console.error('Search Icons Action Exception:', error);
+        return { icons: [], total_count: 0 };
     }
-
-    return response.json();
 }
 
 export async function getIconSvgAction(url: string): Promise<string> {
-    const response = await fetch(url, {
-        headers: {
-            'Authorization': `Bearer ${process.env.ICONFINDER_API_KEY}`,
-            'accept': 'application/json'
-        },
-    });
-    if (!response.ok) {
-        throw new Error('Failed to fetch SVG content from Iconfinder.');
+    if (!url) return '';
+
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${process.env.ICONFINDER_API_KEY}`,
+                'accept': 'application/json'
+            },
+            // Iconfinder download URLs often redirect
+            redirect: 'follow'
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Iconfinder SVG Fetch Error:', {
+                status: response.status,
+                url: url,
+                body: errorText
+            });
+            throw new Error('Failed to fetch SVG content from Iconfinder.');
+        }
+
+        return await response.text();
+    } catch (error) {
+        console.error('Get Icon SVG Action Exception:', error);
+        throw error;
     }
-    return response.text();
 }
