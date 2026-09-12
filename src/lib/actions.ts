@@ -26,13 +26,11 @@ export async function searchIconsAction(query: string): Promise<IconifySearchRes
         return { icons: [], total_count: 0 };
     }
 
-    // Using v4 as it's the current stable version. 
-    // We use 1/0 for booleans as it's often more reliable for various API implementations.
     const params = new URLSearchParams({
         query: query,
         count: '50',
-        premium: '0', // 0 for free icons
-        vector: '1',  // 1 for vector icons
+        premium: '0',
+        vector: '1',
     });
 
     try {
@@ -55,7 +53,6 @@ export async function searchIconsAction(query: string): Promise<IconifySearchRes
                 query: query
             });
 
-            // Return empty state for server errors to prevent app crash
             if (response.status >= 500) {
                 return { icons: [], total_count: 0 };
             }
@@ -79,9 +76,7 @@ export async function getIconSvgAction(url: string): Promise<string> {
             headers: {
                 'Authorization': `Bearer ${process.env.ICONFINDER_API_KEY}`,
                 'accept': 'application/json'
-            },
-            // Iconfinder download URLs often redirect
-            redirect: 'follow'
+            }
         });
 
         if (!response.ok) {
